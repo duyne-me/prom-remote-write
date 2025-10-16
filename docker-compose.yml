@@ -1,6 +1,7 @@
 services:
   mock-exporter:
-    build: ./mock-exporter
+    # build: ./mock-exporter
+    image: ghcr.io/duyne-me/mock-exporter:latest
     container_name: mock-exporter
     ports:
       - "2112:2112"
