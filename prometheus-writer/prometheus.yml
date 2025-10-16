@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "mock-exporter"
+    static_configs:
+      - targets: ["mock-exporter:2112"]
+
+remote_write:
+  - url: "http://prometheus-receiver:9090/api/v1/write"
+    remote_timeout: 30s
+    write_relabel_configs:
+      - source_labels: [job]
+        target_label: job
+        replacement: "agent-job"
+      - target_label: cluster
+        replacement: "dev-cluster"
+      - target_label: region
+        replacement: "ap-southeast-1"
+      - target_label: environment
+        replacement: "staging"

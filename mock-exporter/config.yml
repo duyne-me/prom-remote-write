@@ -1,0 +1,22 @@
+label_metrics:
+  - env: "dev"
+    app: "mock-service"
+
+mock_metrics:
+  - name: "http_requests_total"
+    type: "counter"
+    value: 100
+    labels:
+      service: "frontend"
+
+  - name: "cpu_usage_percent"
+    type: "gauge"
+    value: 40
+    labels:
+      host: "vm01"
+
+  - name: "memory_usage_mb"
+    type: "gauge"
+    value: 200
+    labels:
+      host: "vm01"
