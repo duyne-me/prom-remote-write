@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'mock-exporter/**'
+      - '.github/workflows/docker.yml'
   workflow_dispatch:
 
 env:
