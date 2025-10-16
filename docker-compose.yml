@@ -11,7 +11,7 @@ services:
     image: prom/prometheus:v3.7.0
     container_name: prometheus-writer
     volumes:
-      - ./prometheus-writer/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/writer.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     depends_on:
@@ -26,7 +26,7 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--web.enable-remote-write-receiver"
     volumes:
-      - ./prometheus-receiver/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/receiver.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9091:9090"
     networks:
