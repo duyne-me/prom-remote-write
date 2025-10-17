@@ -1,0 +1,1427 @@
+# Mock Exporter Configuration
+# Production-like metrics with multi-region labels
+
+# Label metrics for info-style metrics
+label_metrics:
+  # US East 1 - Production
+  - env: "production"
+    app: "web-frontend"
+    version: "v1.2.3"
+    team: "platform"
+    region: "us-east-1"
+    cluster: "prod-us"
+    environment: "production"
+  
+  - env: "production"
+    app: "api-gateway"
+    version: "v2.1.0"
+    team: "backend"
+    region: "us-east-1"
+    cluster: "prod-us"
+    environment: "production"
+  
+  # EU West 1 - Production
+  - env: "production"
+    app: "web-frontend"
+    version: "v1.2.3"
+    team: "platform"
+    region: "eu-west-1"
+    cluster: "prod-eu"
+    environment: "production"
+  
+  - env: "production"
+    app: "api-gateway"
+    version: "v2.1.0"
+    team: "backend"
+    region: "eu-west-1"
+    cluster: "prod-eu"
+    environment: "production"
+  
+  # APAC - Production
+  - env: "production"
+    app: "web-frontend"
+    version: "v1.2.3"
+    team: "platform"
+    region: "ap-southeast-1"
+    cluster: "prod-apac"
+    environment: "production"
+  
+  - env: "production"
+    app: "api-gateway"
+    version: "v2.1.0"
+    team: "backend"
+    region: "ap-southeast-1"
+    cluster: "prod-apac"
+    environment: "production"
+  
+  # South America - Production
+  - env: "production"
+    app: "web-frontend"
+    version: "v1.2.3"
+    team: "platform"
+    region: "sa-east-1"
+    cluster: "prod-sa"
+    environment: "production"
+  
+  - env: "production"
+    app: "api-gateway"
+    version: "v2.1.0"
+    team: "backend"
+    region: "sa-east-1"
+    cluster: "prod-sa"
+    environment: "production"
+  
+  # Local - Staging
+  - env: "staging"
+    app: "web-frontend"
+    version: "v1.2.4-rc1"
+    team: "platform"
+    region: "local"
+    cluster: "dev-cluster"
+    environment: "staging"
+
+# HTTP Service Metrics (RED method) - Multi-region
+http_metrics:
+  # US East 1 - Production
+  - name: "http_request_duration_seconds"
+    type: "histogram"
+    value: 0.1
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/api/users"
+      status_code: "200"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+  
+  - name: "http_request_duration_seconds"
+    type: "histogram"
+    value: 0.3
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/orders"
+      status_code: "201"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+
+  - name: "http_requests_total"
+    type: "counter"
+    value: 1000
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/"
+      status_code: "200"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  - name: "http_requests_total"
+    type: "counter"
+    value: 50
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/auth/login"
+      status_code: "401"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  # EU West 1 - Production
+  - name: "http_request_duration_seconds"
+    type: "histogram"
+    value: 0.12
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/api/users"
+      status_code: "200"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+  
+  - name: "http_request_duration_seconds"
+    type: "histogram"
+    value: 0.35
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/orders"
+      status_code: "201"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+
+  - name: "http_requests_total"
+    type: "counter"
+    value: 800
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/"
+      status_code: "200"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  - name: "http_requests_total"
+    type: "counter"
+    value: 40
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/auth/login"
+      status_code: "401"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  # APAC - Production
+  - name: "http_request_duration_seconds"
+    type: "histogram"
+    value: 0.15
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/api/users"
+      status_code: "200"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+  
+  - name: "http_request_duration_seconds"
+    type: "histogram"
+    value: 0.4
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/orders"
+      status_code: "201"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+
+  - name: "http_requests_total"
+    type: "counter"
+    value: 600
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/"
+      status_code: "200"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  - name: "http_requests_total"
+    type: "counter"
+    value: 30
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/auth/login"
+      status_code: "401"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  # South America - Production
+  - name: "http_request_duration_seconds"
+    type: "histogram"
+    value: 0.18
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/api/users"
+      status_code: "200"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+  
+  - name: "http_request_duration_seconds"
+    type: "histogram"
+    value: 0.45
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/orders"
+      status_code: "201"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+
+  - name: "http_requests_total"
+    type: "counter"
+    value: 400
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/"
+      status_code: "200"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  - name: "http_requests_total"
+    type: "counter"
+    value: 20
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/auth/login"
+      status_code: "401"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  # Local - Staging
+  - name: "http_request_duration_seconds"
+    type: "histogram"
+    value: 0.2
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/api/users"
+      status_code: "200"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+  
+  - name: "http_request_duration_seconds"
+    type: "histogram"
+    value: 0.5
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/orders"
+      status_code: "201"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+
+  - name: "http_requests_total"
+    type: "counter"
+    value: 200
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/"
+      status_code: "200"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  - name: "http_requests_total"
+    type: "counter"
+    value: 10
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/auth/login"
+      status_code: "401"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  # Request/Response size metrics (all regions)
+  - name: "http_request_size_bytes"
+    type: "histogram"
+    value: 1024
+    labels:
+      service: "api-gateway"
+      method: "POST"
+      path: "/api/orders"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+    buckets: [100, 500, 1000, 5000, 10000, 50000, 100000]
+
+  - name: "http_response_size_bytes"
+    type: "histogram"
+    value: 2048
+    labels:
+      service: "web-frontend"
+      method: "GET"
+      path: "/api/users"
+      status_code: "200"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+    buckets: [100, 500, 1000, 5000, 10000, 50000, 100000]
+
+# Node/System Metrics (USE method) - Multi-region
+node_metrics:
+  # US East 1
+  - name: "node_cpu_seconds_total"
+    type: "counter"
+    value: 1000
+    labels:
+      cpu: "0"
+      mode: "user"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  - name: "node_cpu_seconds_total"
+    type: "counter"
+    value: 200
+    labels:
+      cpu: "0"
+      mode: "system"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  - name: "node_memory_MemTotal_bytes"
+    type: "gauge"
+    value: 8589934592  # 8GB
+    labels:
+      host: "web-server-us-east-1"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  - name: "node_memory_MemAvailable_bytes"
+    type: "gauge"
+    value: 4294967296  # 4GB
+    labels:
+      host: "web-server-us-east-1"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  # EU West 1
+  - name: "node_cpu_seconds_total"
+    type: "counter"
+    value: 1200
+    labels:
+      cpu: "0"
+      mode: "user"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  - name: "node_cpu_seconds_total"
+    type: "counter"
+    value: 250
+    labels:
+      cpu: "0"
+      mode: "system"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  - name: "node_memory_MemTotal_bytes"
+    type: "gauge"
+    value: 8589934592  # 8GB
+    labels:
+      host: "web-server-eu-west-1"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  - name: "node_memory_MemAvailable_bytes"
+    type: "gauge"
+    value: 3221225472  # 3GB
+    labels:
+      host: "web-server-eu-west-1"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  # APAC
+  - name: "node_cpu_seconds_total"
+    type: "counter"
+    value: 800
+    labels:
+      cpu: "0"
+      mode: "user"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  - name: "node_cpu_seconds_total"
+    type: "counter"
+    value: 150
+    labels:
+      cpu: "0"
+      mode: "system"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  - name: "node_memory_MemTotal_bytes"
+    type: "gauge"
+    value: 8589934592  # 8GB
+    labels:
+      host: "web-server-ap-southeast-1"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  - name: "node_memory_MemAvailable_bytes"
+    type: "gauge"
+    value: 5368709120  # 5GB
+    labels:
+      host: "web-server-ap-southeast-1"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  # South America
+  - name: "node_cpu_seconds_total"
+    type: "counter"
+    value: 600
+    labels:
+      cpu: "0"
+      mode: "user"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  - name: "node_cpu_seconds_total"
+    type: "counter"
+    value: 100
+    labels:
+      cpu: "0"
+      mode: "system"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  - name: "node_memory_MemTotal_bytes"
+    type: "gauge"
+    value: 8589934592  # 8GB
+    labels:
+      host: "web-server-sa-east-1"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  - name: "node_memory_MemAvailable_bytes"
+    type: "gauge"
+    value: 6442450944  # 6GB
+    labels:
+      host: "web-server-sa-east-1"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  # Local - Staging
+  - name: "node_cpu_seconds_total"
+    type: "counter"
+    value: 300
+    labels:
+      cpu: "0"
+      mode: "user"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  - name: "node_cpu_seconds_total"
+    type: "counter"
+    value: 50
+    labels:
+      cpu: "0"
+      mode: "system"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  - name: "node_memory_MemTotal_bytes"
+    type: "gauge"
+    value: 4294967296  # 4GB
+    labels:
+      host: "web-server-local"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  - name: "node_memory_MemAvailable_bytes"
+    type: "gauge"
+    value: 2147483648  # 2GB
+    labels:
+      host: "web-server-local"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+# Application Metrics - Multi-region
+app_metrics:
+  # US East 1
+  - name: "app_errors_total"
+    type: "counter"
+    value: 10
+    labels:
+      service: "user-service"
+      component: "api"
+      error_type: "validation_error"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  - name: "app_errors_total"
+    type: "counter"
+    value: 5
+    labels:
+      service: "order-service"
+      component: "database"
+      error_type: "database_connection"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  - name: "app_database_connections_active"
+    type: "gauge"
+    value: 15
+    labels:
+      service: "user-service"
+      database: "users_db"
+      state: "active"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  - name: "app_database_queries_duration_seconds"
+    type: "histogram"
+    value: 0.05
+    labels:
+      service: "user-service"
+      database: "users_db"
+      query_type: "SELECT"
+      table: "users"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+    buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]
+
+  - name: "app_cache_requests_total"
+    type: "counter"
+    value: 1000
+    labels:
+      service: "user-service"
+      cache_name: "redis"
+      result: "hit"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  - name: "app_cache_requests_total"
+    type: "counter"
+    value: 200
+    labels:
+      service: "user-service"
+      cache_name: "redis"
+      result: "miss"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  - name: "app_queue_size"
+    type: "gauge"
+    value: 25
+    labels:
+      service: "order-service"
+      queue_name: "order_processing"
+      priority: "high"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  - name: "app_worker_tasks_duration_seconds"
+    type: "histogram"
+    value: 2.0
+    labels:
+      service: "order-service"
+      task_type: "process_order"
+      status: "completed"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+    buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 300]
+
+  - name: "app_business_transactions_total"
+    type: "counter"
+    value: 500
+    labels:
+      service: "order-service"
+      transaction_type: "purchase"
+      customer_tier: "premium"
+      status: "success"
+      region: "us-east-1"
+      cluster: "prod-us"
+      environment: "production"
+
+  # EU West 1
+  - name: "app_errors_total"
+    type: "counter"
+    value: 8
+    labels:
+      service: "user-service"
+      component: "api"
+      error_type: "validation_error"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  - name: "app_errors_total"
+    type: "counter"
+    value: 3
+    labels:
+      service: "order-service"
+      component: "database"
+      error_type: "database_connection"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  - name: "app_database_connections_active"
+    type: "gauge"
+    value: 12
+    labels:
+      service: "user-service"
+      database: "users_db"
+      state: "active"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  - name: "app_database_queries_duration_seconds"
+    type: "histogram"
+    value: 0.06
+    labels:
+      service: "user-service"
+      database: "users_db"
+      query_type: "SELECT"
+      table: "users"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+    buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]
+
+  - name: "app_cache_requests_total"
+    type: "counter"
+    value: 800
+    labels:
+      service: "user-service"
+      cache_name: "redis"
+      result: "hit"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  - name: "app_cache_requests_total"
+    type: "counter"
+    value: 150
+    labels:
+      service: "user-service"
+      cache_name: "redis"
+      result: "miss"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  - name: "app_queue_size"
+    type: "gauge"
+    value: 20
+    labels:
+      service: "order-service"
+      queue_name: "order_processing"
+      priority: "high"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  - name: "app_worker_tasks_duration_seconds"
+    type: "histogram"
+    value: 2.2
+    labels:
+      service: "order-service"
+      task_type: "process_order"
+      status: "completed"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+    buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 300]
+
+  - name: "app_business_transactions_total"
+    type: "counter"
+    value: 400
+    labels:
+      service: "order-service"
+      transaction_type: "purchase"
+      customer_tier: "premium"
+      status: "success"
+      region: "eu-west-1"
+      cluster: "prod-eu"
+      environment: "production"
+
+  # APAC
+  - name: "app_errors_total"
+    type: "counter"
+    value: 6
+    labels:
+      service: "user-service"
+      component: "api"
+      error_type: "validation_error"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  - name: "app_errors_total"
+    type: "counter"
+    value: 2
+    labels:
+      service: "order-service"
+      component: "database"
+      error_type: "database_connection"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  - name: "app_database_connections_active"
+    type: "gauge"
+    value: 10
+    labels:
+      service: "user-service"
+      database: "users_db"
+      state: "active"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  - name: "app_database_queries_duration_seconds"
+    type: "histogram"
+    value: 0.07
+    labels:
+      service: "user-service"
+      database: "users_db"
+      query_type: "SELECT"
+      table: "users"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+    buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]
+
+  - name: "app_cache_requests_total"
+    type: "counter"
+    value: 600
+    labels:
+      service: "user-service"
+      cache_name: "redis"
+      result: "hit"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  - name: "app_cache_requests_total"
+    type: "counter"
+    value: 100
+    labels:
+      service: "user-service"
+      cache_name: "redis"
+      result: "miss"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  - name: "app_queue_size"
+    type: "gauge"
+    value: 15
+    labels:
+      service: "order-service"
+      queue_name: "order_processing"
+      priority: "high"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  - name: "app_worker_tasks_duration_seconds"
+    type: "histogram"
+    value: 2.5
+    labels:
+      service: "order-service"
+      task_type: "process_order"
+      status: "completed"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+    buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 300]
+
+  - name: "app_business_transactions_total"
+    type: "counter"
+    value: 300
+    labels:
+      service: "order-service"
+      transaction_type: "purchase"
+      customer_tier: "premium"
+      status: "success"
+      region: "ap-southeast-1"
+      cluster: "prod-apac"
+      environment: "production"
+
+  # South America
+  - name: "app_errors_total"
+    type: "counter"
+    value: 4
+    labels:
+      service: "user-service"
+      component: "api"
+      error_type: "validation_error"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  - name: "app_errors_total"
+    type: "counter"
+    value: 1
+    labels:
+      service: "order-service"
+      component: "database"
+      error_type: "database_connection"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  - name: "app_database_connections_active"
+    type: "gauge"
+    value: 8
+    labels:
+      service: "user-service"
+      database: "users_db"
+      state: "active"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  - name: "app_database_queries_duration_seconds"
+    type: "histogram"
+    value: 0.08
+    labels:
+      service: "user-service"
+      database: "users_db"
+      query_type: "SELECT"
+      table: "users"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+    buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]
+
+  - name: "app_cache_requests_total"
+    type: "counter"
+    value: 400
+    labels:
+      service: "user-service"
+      cache_name: "redis"
+      result: "hit"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  - name: "app_cache_requests_total"
+    type: "counter"
+    value: 80
+    labels:
+      service: "user-service"
+      cache_name: "redis"
+      result: "miss"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  - name: "app_queue_size"
+    type: "gauge"
+    value: 10
+    labels:
+      service: "order-service"
+      queue_name: "order_processing"
+      priority: "high"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  - name: "app_worker_tasks_duration_seconds"
+    type: "histogram"
+    value: 2.8
+    labels:
+      service: "order-service"
+      task_type: "process_order"
+      status: "completed"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+    buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 300]
+
+  - name: "app_business_transactions_total"
+    type: "counter"
+    value: 200
+    labels:
+      service: "order-service"
+      transaction_type: "purchase"
+      customer_tier: "premium"
+      status: "success"
+      region: "sa-east-1"
+      cluster: "prod-sa"
+      environment: "production"
+
+  # Local - Staging
+  - name: "app_errors_total"
+    type: "counter"
+    value: 2
+    labels:
+      service: "user-service"
+      component: "api"
+      error_type: "validation_error"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  - name: "app_errors_total"
+    type: "counter"
+    value: 1
+    labels:
+      service: "order-service"
+      component: "database"
+      error_type: "database_connection"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  - name: "app_database_connections_active"
+    type: "gauge"
+    value: 5
+    labels:
+      service: "user-service"
+      database: "users_db"
+      state: "active"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  - name: "app_database_queries_duration_seconds"
+    type: "histogram"
+    value: 0.1
+    labels:
+      service: "user-service"
+      database: "users_db"
+      query_type: "SELECT"
+      table: "users"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+    buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]
+
+  - name: "app_cache_requests_total"
+    type: "counter"
+    value: 100
+    labels:
+      service: "user-service"
+      cache_name: "redis"
+      result: "hit"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  - name: "app_cache_requests_total"
+    type: "counter"
+    value: 20
+    labels:
+      service: "user-service"
+      cache_name: "redis"
+      result: "miss"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  - name: "app_queue_size"
+    type: "gauge"
+    value: 5
+    labels:
+      service: "order-service"
+      queue_name: "order_processing"
+      priority: "high"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+  - name: "app_worker_tasks_duration_seconds"
+    type: "histogram"
+    value: 3.0
+    labels:
+      service: "order-service"
+      task_type: "process_order"
+      status: "completed"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+    buckets: [0.1, 0.5, 1, 2, 5, 10, 30, 60, 120, 300]
+
+  - name: "app_business_transactions_total"
+    type: "counter"
+    value: 50
+    labels:
+      service: "order-service"
+      transaction_type: "purchase"
+      customer_tier: "premium"
+      status: "success"
+      region: "local"
+      cluster: "dev-cluster"
+      environment: "staging"
+
+# Cross-region synthetic probe metrics
+probe_metrics:
+  # US to other regions
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.050  # 50ms within US
+    labels:
+      source_region: "us-east-1"
+      target_region: "us-east-1"
+      probe_type: "http"
+      cluster: "prod-us"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.150  # 150ms US to EU
+    labels:
+      source_region: "us-east-1"
+      target_region: "eu-west-1"
+      probe_type: "http"
+      cluster: "prod-us"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.200  # 200ms US to APAC
+    labels:
+      source_region: "us-east-1"
+      target_region: "ap-southeast-1"
+      probe_type: "http"
+      cluster: "prod-us"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.180  # 180ms US to SA
+    labels:
+      source_region: "us-east-1"
+      target_region: "sa-east-1"
+      probe_type: "http"
+      cluster: "prod-us"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  # EU to other regions
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.040
+    labels:
+      source_region: "eu-west-1"
+      target_region: "eu-west-1"
+      probe_type: "http"
+      cluster: "prod-eu"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.150
+    labels:
+      source_region: "eu-west-1"
+      target_region: "us-east-1"
+      probe_type: "http"
+      cluster: "prod-eu"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.220
+    labels:
+      source_region: "eu-west-1"
+      target_region: "ap-southeast-1"
+      probe_type: "http"
+      cluster: "prod-eu"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.190
+    labels:
+      source_region: "eu-west-1"
+      target_region: "sa-east-1"
+      probe_type: "http"
+      cluster: "prod-eu"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  # APAC to other regions
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.030
+    labels:
+      source_region: "ap-southeast-1"
+      target_region: "ap-southeast-1"
+      probe_type: "http"
+      cluster: "prod-apac"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.200
+    labels:
+      source_region: "ap-southeast-1"
+      target_region: "us-east-1"
+      probe_type: "http"
+      cluster: "prod-apac"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.220
+    labels:
+      source_region: "ap-southeast-1"
+      target_region: "eu-west-1"
+      probe_type: "http"
+      cluster: "prod-apac"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.250
+    labels:
+      source_region: "ap-southeast-1"
+      target_region: "sa-east-1"
+      probe_type: "http"
+      cluster: "prod-apac"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  # SA to other regions
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.035
+    labels:
+      source_region: "sa-east-1"
+      target_region: "sa-east-1"
+      probe_type: "http"
+      cluster: "prod-sa"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.180
+    labels:
+      source_region: "sa-east-1"
+      target_region: "us-east-1"
+      probe_type: "http"
+      cluster: "prod-sa"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.190
+    labels:
+      source_region: "sa-east-1"
+      target_region: "eu-west-1"
+      probe_type: "http"
+      cluster: "prod-sa"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  - name: "probe_http_duration_seconds"
+    type: "histogram"
+    value: 0.250
+    labels:
+      source_region: "sa-east-1"
+      target_region: "ap-southeast-1"
+      probe_type: "http"
+      cluster: "prod-sa"
+      environment: "production"
+    buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+  
+  # Probe success rate
+  - name: "probe_success_total"
+    type: "counter"
+    value: 1000
+    labels:
+      source_region: "us-east-1"
+      target_region: "eu-west-1"
+      probe_type: "http"
+      result: "success"
+      cluster: "prod-us"
+      environment: "production"
+  
+  - name: "probe_success_total"
+    type: "counter"
+    value: 5
+    labels:
+      source_region: "us-east-1"
+      target_region: "eu-west-1"
+      probe_type: "http"
+      result: "failure"
+      cluster: "prod-us"
+      environment: "production"
+  
+  - name: "probe_success_total"
+    type: "counter"
+    value: 950
+    labels:
+      source_region: "us-east-1"
+      target_region: "ap-southeast-1"
+      probe_type: "http"
+      result: "success"
+      cluster: "prod-us"
+      environment: "production"
+  
+  - name: "probe_success_total"
+    type: "counter"
+    value: 10
+    labels:
+      source_region: "us-east-1"
+      target_region: "ap-southeast-1"
+      probe_type: "http"
+      result: "failure"
+      cluster: "prod-us"
+      environment: "production"
+
+# SLO/SLI metrics
+slo_metrics:
+  # Availability SLI
+  - name: "slo_availability_target"
+    type: "gauge"
+    value: 99.9  # 99.9% uptime target
+    labels:
+      service: "web-frontend"
+      slo_type: "availability"
+      cluster: "prod-us"
+      environment: "production"
+  
+  - name: "slo_availability_target"
+    type: "gauge"
+    value: 99.9
+    labels:
+      service: "api-gateway"
+      slo_type: "availability"
+      cluster: "prod-eu"
+      environment: "production"
+  
+  - name: "slo_availability_target"
+    type: "gauge"
+    value: 99.5
+    labels:
+      service: "payment-service"
+      slo_type: "availability"
+      cluster: "prod-apac"
+      environment: "production"
+  
+  # Latency SLI (p95 < 500ms)
+  - name: "slo_latency_target_seconds"
+    type: "gauge"
+    value: 0.5
+    labels:
+      service: "api-gateway"
+      slo_type: "latency"
+      percentile: "p95"
+      cluster: "prod-us"
+      environment: "production"
+  
+  - name: "slo_latency_target_seconds"
+    type: "gauge"
+    value: 0.3
+    labels:
+      service: "web-frontend"
+      slo_type: "latency"
+      percentile: "p95"
+      cluster: "prod-eu"
+      environment: "production"
+  
+  - name: "slo_latency_target_seconds"
+    type: "gauge"
+    value: 0.8
+    labels:
+      service: "payment-service"
+      slo_type: "latency"
+      percentile: "p95"
+      cluster: "prod-apac"
+      environment: "production"
+  
+  # Error rate SLI (< 1%)
+  - name: "slo_error_rate_target"
+    type: "gauge"
+    value: 0.01
+    labels:
+      service: "payment-service"
+      slo_type: "error_rate"
+      cluster: "prod-apac"
+      environment: "production"
+  
+  - name: "slo_error_rate_target"
+    type: "gauge"
+    value: 0.005
+    labels:
+      service: "web-frontend"
+      slo_type: "error_rate"
+      cluster: "prod-us"
+      environment: "production"
+  
+  - name: "slo_error_rate_target"
+    type: "gauge"
+    value: 0.02
+    labels:
+      service: "api-gateway"
+      slo_type: "error_rate"
+      cluster: "prod-eu"
+      environment: "production"
+  
+  # Error budget remaining (%)
+  - name: "slo_error_budget_remaining_percent"
+    type: "gauge"
+    value: 85.5  # 85.5% error budget còn lại
+    labels:
+      service: "web-frontend"
+      window: "30d"
+      cluster: "prod-us"
+      environment: "production"
+  
+  - name: "slo_error_budget_remaining_percent"
+    type: "gauge"
+    value: 92.3
+    labels:
+      service: "api-gateway"
+      window: "30d"
+      cluster: "prod-eu"
+      environment: "production"
+  
+  - name: "slo_error_budget_remaining_percent"
+    type: "gauge"
+    value: 78.1
+    labels:
+      service: "payment-service"
+      window: "30d"
+      cluster: "prod-apac"
+      environment: "production"
