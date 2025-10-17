@@ -1,0 +1,21 @@
+# vmagent configuration for AP Southeast 1 region
+global:
+  scrape_interval: 15s
+  external_labels:
+    region: "ap-southeast-1"
+    cluster: "prod-apac"
+    environment: "production"
+
+scrape_configs:
+  - job_name: "mock-exporter-ap-southeast-1"
+    static_configs:
+      - targets: ["mock-exporter-python:2112"]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: "mock-exporter-ap-southeast-1"
+      - target_label: job
+        replacement: "mock-exporter"
+      - target_label: availability_zone
+        replacement: "ap-southeast-1a"
+

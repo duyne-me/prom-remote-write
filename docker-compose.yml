@@ -1,22 +1,175 @@
 services:
+  # Python Mock Exporter
+  mock-exporter-python:
+    build: ./mock-exporter-python
+    container_name: mock-exporter-python
+    ports:
+      - "2112:2112"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=2112
+      - LOG_LEVEL=info
+    networks:
+      - promnet
+
+  # Legacy Go mock-exporter (for comparison)
   mock-exporter:
     # build: ./mock-exporter
     image: ghcr.io/duyne-me/mock-exporter:latest
     container_name: mock-exporter
     ports:
-      - "2112:2112"
+      - "2113:2112"
     networks:
       - promnet
 
+  # VictoriaMetrics Cluster
+  vmstorage-1:
+    image: victoriametrics/vmstorage:latest
+    container_name: vmstorage-1
+    command:
+      - "--storageDataPath=/vmstorage-data"
+      - "--retentionPeriod=1y"
+      - "--httpListenAddr=:8482"
+    volumes:
+      - vmstorage-1-data:/vmstorage-data
+    networks:
+      - promnet
+
+  vmstorage-2:
+    image: victoriametrics/vmstorage:latest
+    container_name: vmstorage-2
+    command:
+      - "--storageDataPath=/vmstorage-data"
+      - "--retentionPeriod=1y"
+      - "--httpListenAddr=:8482"
+    volumes:
+      - vmstorage-2-data:/vmstorage-data
+    networks:
+      - promnet
+
+  vminsert-1:
+    image: victoriametrics/vminsert:latest
+    container_name: vminsert-1
+    command:
+      - "--storageNode=vmstorage-1:8400"
+      - "--storageNode=vmstorage-2:8400"
+      - "--httpListenAddr=:8480"
+    depends_on:
+      - vmstorage-1
+      - vmstorage-2
+    networks:
+      - promnet
+
+  vminsert-2:
+    image: victoriametrics/vminsert:latest
+    container_name: vminsert-2
+    command:
+      - "--storageNode=vmstorage-1:8400"
+      - "--storageNode=vmstorage-2:8400"
+      - "--httpListenAddr=:8480"
+    depends_on:
+      - vmstorage-1
+      - vmstorage-2
+    networks:
+      - promnet
+
+  vmselect-1:
+    image: victoriametrics/vmselect:latest
+    container_name: vmselect-1
+    command:
+      - "--storageNode=vmstorage-1:8401"
+      - "--storageNode=vmstorage-2:8401"
+      - "--httpListenAddr=:8481"
+    depends_on:
+      - vmstorage-1
+      - vmstorage-2
+    networks:
+      - promnet
+
+  vmselect-2:
+    image: victoriametrics/vmselect:latest
+    container_name: vmselect-2
+    command:
+      - "--storageNode=vmstorage-1:8401"
+      - "--storageNode=vmstorage-2:8401"
+      - "--httpListenAddr=:8481"
+    depends_on:
+      - vmstorage-1
+      - vmstorage-2
+    networks:
+      - promnet
+
+
+  # vmagent instances for multi-region simulation
+  vmagent-us-east-1:
+    image: victoriametrics/vmagent:latest
+    container_name: vmagent-us-east-1
+    command:
+      - "--promscrape.config=/etc/vmagent/us-east-1.yml"
+      - "--remoteWrite.url=http://vminsert-1:8480/insert/0/prometheus/api/v1/write"
+    ports:
+      - "8429:8429"
+    volumes:
+      - ./vmagent/us-east-1.yml:/etc/vmagent/us-east-1.yml:ro
+    depends_on:
+      - mock-exporter-python
+      - vminsert-1
+    networks:
+      - promnet
+
+  vmagent-eu-west-1:
+    image: victoriametrics/vmagent:latest
+    container_name: vmagent-eu-west-1
+    command:
+      - "--promscrape.config=/etc/vmagent/eu-west-1.yml"
+      - "--remoteWrite.url=http://vminsert-2:8480/insert/0/prometheus/api/v1/write"
+    volumes:
+      - ./vmagent/eu-west-1.yml:/etc/vmagent/eu-west-1.yml:ro
+    depends_on:
+      - mock-exporter-python
+      - vminsert-2
+    networks:
+      - promnet
+
+  vmagent-ap-southeast-1:
+    image: victoriametrics/vmagent:latest
+    container_name: vmagent-ap-southeast-1
+    command:
+      - "--promscrape.config=/etc/vmagent/ap-southeast-1.yml"
+      - "--remoteWrite.url=http://vminsert-1:8480/insert/0/prometheus/api/v1/write"
+    volumes:
+      - ./vmagent/ap-southeast-1.yml:/etc/vmagent/ap-southeast-1.yml:ro
+    depends_on:
+      - mock-exporter-python
+      - vminsert-1
+    networks:
+      - promnet
+
+  vmagent-sa-east-1:
+    image: victoriametrics/vmagent:latest
+    container_name: vmagent-sa-east-1
+    command:
+      - "--promscrape.config=/etc/vmagent/sa-east-1.yml"
+      - "--remoteWrite.url=http://vminsert-2:8480/insert/0/prometheus/api/v1/write"
+    volumes:
+      - ./vmagent/sa-east-1.yml:/etc/vmagent/sa-east-1.yml:ro
+    depends_on:
+      - mock-exporter-python
+      - vminsert-2
+    networks:
+      - promnet
+
+  # Prometheus Writer (updated to use Python exporter)
   prometheus-writer:
     image: prom/prometheus:v3.7.0
     container_name: prometheus-writer
     volumes:
       - ./prometheus/writer.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - "9092:9090"
     depends_on:
-      - mock-exporter
+      - mock-exporter-python
+      - vminsert-1
     networks:
       - promnet
 
@@ -37,7 +190,7 @@ services:
     image: grafana/grafana:12.0.0
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
@@ -46,10 +199,16 @@ services:
       - GF_LOG_LEVEL=critical
     volumes:
       - ./grafana/provisioning/datasources.yml:/etc/grafana/provisioning/datasources/provisioning-datasources.yaml:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
     depends_on:
       - prometheus-receiver
+      - vmselect-1
     networks:
       - promnet
+
+volumes:
+  vmstorage-1-data:
+  vmstorage-2-data:
 
 networks:
   promnet:

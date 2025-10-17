@@ -4,4 +4,16 @@ datasources:
     type: prometheus
     access: proxy
     url: http://prometheus-receiver:9090
+    isDefault: false
+    basicAuth: false
+    
+  - name: VictoriaMetrics
+    type: prometheus
+    access: proxy
+    url: http://vmselect-1:8481/select/0/prometheus
     isDefault: true
+    basicAuth: false
+    jsonData:
+      httpMethod: POST
+      queryTimeout: 60s
+      timeInterval: 15s

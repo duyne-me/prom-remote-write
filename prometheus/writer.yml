@@ -2,20 +2,42 @@ global:
   scrape_interval: 5s
 
 scrape_configs:
-  - job_name: "mock-exporter"
+  - job_name: "mock-exporter-python"
     static_configs:
-      - targets: ["mock-exporter:2112"]
+      - targets: ["mock-exporter-python:2112"]
+    relabel_configs:
+      - target_label: job
+        replacement: "prometheus-writer"
 
 remote_write:
+  # Remote write to Prometheus receiver (monitoring cluster)
   - url: 'http://prometheus-receiver:9090/api/v1/write'
     remote_timeout: 30s
     write_relabel_configs:
       - source_labels: [job]
         target_label: job
-        replacement: "agent-job"
+        replacement: "prometheus-agent-job"
       - target_label: cluster
-        replacement: "dev-cluster"
+        replacement: "monitoring-cluster"  # prometheus-receiver cluster
       - target_label: region
-        replacement: "ap-southeast-1"
+        replacement: "local"
+      - target_label: environment
+        replacement: "monitoring"
+      - target_label: source
+        replacement: "prometheus-writer"
+  
+  # Remote write to VictoriaMetrics (staging cluster)
+  - url: 'http://vminsert-1:8480/insert/0/prometheus/api/v1/write'
+    remote_timeout: 30s
+    write_relabel_configs:
+      - source_labels: [job]
+        target_label: job
+        replacement: "prometheus-writer-job"
+      - target_label: cluster
+        replacement: "staging-cluster"  # prometheus-writer cluster
+      - target_label: region
+        replacement: "local"
       - target_label: environment
         replacement: "staging"
+      - target_label: source
+        replacement: "prometheus"
