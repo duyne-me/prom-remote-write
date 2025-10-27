@@ -100,7 +100,7 @@ relabel_configs:
   - target_label: region
     replacement: "us-east-1"
   - target_label: cluster
-    replacement: "prod-us-k8s"
+    replacement: "дрон-us-k8s"
 ```
 
 ### Write Relabel Configs
@@ -196,3 +196,4 @@ docker compose logs vmstorage-1
 docker compose logs vminsert-1
 docker compose logs vmselect-1
 ```
+

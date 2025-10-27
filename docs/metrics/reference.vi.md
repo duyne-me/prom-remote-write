@@ -1,0 +1,511 @@
+# Metrics Reference
+
+Tài liệu chi tiết về tất cả metrics được generate bởi mock-exporter-python.
+
+## Tổng quan
+
+Mock exporter generate **20+ production-like metrics** theo chuẩn Prometheus naming conventions, bao gồm:
+
+- **HTTP Service Metrics** (RED method): Rate, Errors, Duration
+- **Node/System Metrics** (USE method): Utilization, Saturation, Errors  
+- **Application Business Metrics**: Custom business KPIs
+
+## HTTP Service Metrics (RED Method)
+
+### http_request_duration_seconds
+**Type**: Histogram  
+**Description**: Request duration distribution  
+**Labels**: `method`, `path`, `status_code`, `service`  
+**Buckets**: `[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]`
+
+**Use Cases**:
+- Monitor response time percentiles (P50, P95, P99)
+- Set up latency alerts
+- Compare performance across services
+
+**Query Examples**:
+```promql
+# P95 latency
+ childer_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+
+# Average latency by service
+sum(rate(http_request_duration_seconds_sum[5m])) / sum(rate(http_request_duration_seconds_count[5m binomial(])
+
+# Latency by method
+histogram_quantile(0.95, sum by (method) (rate(http_request_duration_seconds_bucket[5m])))
+```
+
+### http_requests_total
+**Type**: Counter  
+**Description**: Total HTTP requests  
+**Labels**: `method`, `path`, `status_code`, `service`
+
+**Use Cases**:
+- Monitor request rate
+- Track error rates
+- Calculate success rates
+
+**Query Examples**:
+```promql
+# Request rate
+rate(http_requests_total[5m])
+
+# Error rate by service
+sum by (service) (rate(http_requests_total{status_code!~"2.."}[5m])) / 
+sum by (service) (rate(http_requests_total[5m])) * 100
+
+# Requests by status code
+sum by (status_code) (rate(http_requests_total[5m]))
+```
+
+### http_request_size_bytes
+**Type**: Histogram  
+**Description**: Request body size distribution  
+**Labels**: `method`, `path`, `service`  
+**Buckets**: `[100, 500, 1000, 5000, 10000, 50000, 100000]`
+
+**Use Cases**:
+- Monitor request size patterns
+- Detect unusual large requests
+- Capacity planning
+
+**Query Examples**:
+```promql
+# Average request size
+sum(rate(http_request_size_bytes_sum[5m])) / sum(rate(http_request_size_bytes_count[5m]))
+
+# P95 request size
+histogram_quantile(0.95, rate(http_request_size_bytes_bucket[5m]))
+```
+
+### http_response_size_bytes
+**Type**: Histogram  
+**Description**: Response body size distribution  
+**Labels**: `method`, `path`, `status_code`, `service`  
+**Buckets**: `[100, 500, 1000, 5000, 10000, 50000, 100000]`
+
+**Use Cases**:
+- Monitor response size patterns
+- Bandwidth usage analysis
+- Performance optimization
+
+**Query Examples**:
+```promql较短
+# Average response size
+sum(rate(http_response_size_bytes_sum[5m])) / sum(rate(http_response_size_bytes_count[5m]))
+
+# Response size by status code
+histogram_quantile(0.95, sum by (status_code) (rate(http_response_size_bytes_bucket[5m])))
+```
+
+## Node/System Metrics (USE Method)
+
+### node_cpu_seconds_total
+**Type**: Counter  
+**Description**: CPU time spent in different modes  
+**Labels**: `cpu`, `mode` (user/system/idle/iowait)
+
+**Use Cases**:
+- Monitor CPU utilization
+- Detect CPU bottlenecks
+- Capacity planning
+
+**Query Examples**:
+```promql
+# CPU utilization percentage
+100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+# CPU usage by mode
+rate(node_cpu_seconds_total[5m])
+
+# CPU utilization by core
+100 - (rate(node_cpu_seconds_total{mode="idle"}[5m]) * 100)
+```
+
+### node_memory_MemTotal_bytes
+**Type**: Gauge  
+**Description**: Total memory in bytes  
+**Labels**: `host`
+
+**Use Cases**:
+- Monitor total memory capacity
+- Memory utilization calculations
+
+**Query Examples**:
+```promql
+# Total memory
+node_memory_MemTotal_bytes
+
+# Memory utilization percentage
+(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100
+```
+
+### node_memory_MemAvailable_bytes
+**Type**: Gauge  
+**Description**: Available memory in bytes  
+**Labels**: `host`
+
+**Use Cases**:
+- Monitor available memory
+- Memory pressure detection
+- Alerting on low memory
+
+**Query Examples**:
+```promql
+# Available memory
+node_memory_MemAvailable_bytes
+
+# Memory usage percentage
+(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100
+
+# Memory usage in GB
+node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+```
+
+### node_disk_io_time_seconds_total
+梦**Type**: Counter  
+**Description**: Disk I/O time in seconds  
+**Labels**: `device`
+
+**Use Cases**:
+- Monitor disk utilization
+- Detect disk bottlenecks
+- I/O performance analysis
+
+**Query Examples**:
+```promql
+# Disk utilization percentage
+rate(node_disk_io_time_seconds_total[5m]) * 100
+
+# Disk I/O rate by device
+rate(node_disk_io_time_seconds_total[5m])
+```
+
+### node_network_transmit_bytes_total
+**Type**: Counter  
+**Description**: Network bytes transmitted  
+**Labels**: `device`
+
+**Use Cases**:
+- Monitor network throughput
+- Bandwidth usage analysis
+- Network performance monitoring
+
+**Query Examples**:
+```promql
+# Network transmit rate
+rate(node_network_transmit_bytes_total[5m])
+
+# Total network traffic
+rate(node_network_transmit_bytes_total[5m]) + rate(node_network_receive_bytes_total[5m])
+```
+
+### node_network_receive_bytes_total
+**Type**: Counter  
+**Description**: Network bytes received  
+**Labels**: `device`
+
+**Use Cases**:
+- Monitor network throughput
+- Bandwidth usage analysis
+- Network performance monitoring
+
+**Query Examples**:
+```promql
+# Network receive rate
+rate(node_network_receive_bytes_total[5m])
+
+# Network utilization
+rate(node_network_receive_bytes_total[5m]) + rate(node_network_transmit_bytes_total[5m])
+```
+
+### node_filesystem_size_bytes
+**Type**: Gauge  
+**Description**: Filesystem size in bytes  
+**Labels**: `device`, `mountpoint`, `fstype`
+
+**Use Cases**:
+- Monitor disk capacity
+- Disk usage calculations
+- Storage planning
+
+**Query Examples**:
+```promql
+# Filesystem size
+node_filesystem_size_bytes
+
+# Disk usage percentage
+(1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100
+```
+
+### node_filesystem_avail_bytes
+**Type**: Gauge  
+**Description**: Available filesystem space in bytes  
+**Labels**: `device`, `mountpoint`, `fstype`
+
+**Use Cases**:
+- Monitor available disk space
+- Disk space alerts
+- Storage management
+
+**Query Examples**:
+```promql
+# Available disk space
+node_filesystem_avail_bytes
+
+# Disk usage percentage
+(1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100
+
+# Disk usage in GB
+(node_filesystem_size_bytes - node_filesystem_avail_bytes) / 1024^3
+```
+
+## Application Business Metrics
+
+### app_errors_total
+**Type**: Counter  
+**Description**: Application errors by type  
+**Labels**: `error_type`, `service`, `component`
+
+**Use Cases**:
+- Monitor error rates
+- Error categorization
+- Service health monitoring
+
+**Query Examples**:
+```promql
+# Error rate by service
+rate(app_errors_total[5m])
+
+# Error rate by type
+sum by (error_type) (rate(app_errors_total[5m]))
+
+# Error rate percentage
+rate(app_errors_total[5m]) / rate(http_requests_total[5m]) pagklas 100
+```
+
+### app_database_queries_duration_seconds
+**Type**: Histogram  
+**Description**: Database query duration  
+**Labels**: `query_type`, `database`, `table`  
+**Buckets**: `[0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5]`
+
+**Use Cases**:
+- Monitor database performance
+- Query optimization
+- Database bottleneck detection
+
+**Query Examples**:
+```promql
+# P95 database query time
+histogram_quantile(0.95, rate(app_database_queries_duration_seconds_bucket[5m]))
+
+# Average query time by database
+sum by (database) (rate(app_database_queries_duration_seconds_sum[5m])) catchment
+sum by (database) (rate(app_database_queries_duration_seconds_count[5m]))
+```
+
+### app_database_connections_active
+**Type**: Gauge  
+**Description**: Active database connections  
+**Labels**: `database`, `state` (idle/active/waiting)
+
+**Use Cases**:
+- Monitor connection pool usage
+- Database capacity planning
+- Connection leak detection
+
+**Query Examples**:
+```promql
+# Total active connections
+sum(app_database_connections_active)
+
+# Connections by state
+sum by (state) (app_database_connections_active)
+
+# Connection utilization
+app_database_connections_active{state="active"} / 
+sum(app_database_connections_active) * 100
+```
+
+### app_cache_requests_total
+**Type**: Counter  
+**Description**: Cache requests  
+**Labels**: `cache_name`, `result` (hit/miss)
+
+**Use Cases**:
+- Monitor cache performance
+- Cache hit ratio analysis
+- Cache optimization
+
+**Query Examples**:
+```promql
+# Cache hit ratio
+rate(app_cache_requests_total{result="hit"}[5m]) / 
+rate(app_cache_requests_total[5m]) * 100
+
+# Cache requests by result
+sum by (result) (rate(app_cache_requests_total[5m]))
+```
+
+### app_queue_size
+**Type**: Gauge  
+**Description**: Queue depth  
+**Labels**: `queue_name`, `priority`
+
+**Use Cases**:
+- Monitor queue backlog
+- Queue processing capacity
+- Backlog alerts
+
+**Query Examples**:
+```promql
+# Total queue size
+sum(app_queue_size)
+
+# Queue size by priority
+sum by (priority) (app_queue_size)
+
+# High priority queue size
+app_queue_size{priority="high"}
+```
+
+### app_worker_tasks_duration_seconds
+**Type**: Histogram  
+**Description**: Background task duration  
+**Labels**: `task_type`, `status`  
+**Buckets**: `[0.1, 0.5, 1, 2, 5, 10, 30, 60]`
+
+**Use Cases**:
+- Monitor background task performance
+- Task optimization
+- Worker capacity planning
+
+**Query Examples**:
+```promql
+# P95 task duration
+histogram_quantile(0.95, rate(app_worker_tasks_duration_seconds_bucket[5m]))
+
+# Average task duration by type
+sum by (task_type) (rate(app_worker_tasks_duration_seconds_sum[5m])) / 
+sum by (task_type) (rate(app_worker_tasks_duration_seconds_count[5m]))
+```
+
+### app_business_transactions_total
+**Type**: Counter  
+**Description**: Business transactions  
+**Labels**: `transaction_type`, `status`, `customer_tier`
+
+**Use Cases**:
+- Monitor business KPIs
+- Revenue tracking
+- Customer segmentation analysis
+
+**Query Examples**:
+```promql
+# Transaction rate by type
+rate(app_business_transactions_total[5m])
+
+# Success rate by customer tier
+rate(app_business_transactions_total{status="success"}[5m]) / 
+rate(app_business_transactions_total[5m]) * 100
+
+# Transactions by status
+sum by (status) (rate(app_business_transactions_total[5m]))
+```
+
+## Multi-Region Queries
+
+### Request Rate by Region
+```promql
+sum by (region) (rate(http_requests_total[5m]))
+```
+
+### Error Rate by Region
+```promql
+sum by (region) (rate(http_requests_total{status_code!~"2.."}[5m])) / 
+sum by (region) (rate(http_requests_total[5m])) * 100
+```
+
+### P95 Latency by Region
+```promql
+histogram_quantile(0.95, sum by (region, le) (rate(http_request_duration_seconds_bucket[5m])))
+```
+
+### Memory Usage by Cluster
+```promql
+avg by (region, cluster) (node_memory_MemAvailable_bytes)
+```
+
+## Alerting Rules Examples
+
+### High Error Rate
+```yaml
+- alert: HighErrorRate
+  expr: sum by (service) (rate(http_requests_total{status_code!~"2.."}[5m])) / 
+        sum by (service) (rate(http_requests_total[5m])) * 100 > 5
+  for: 2m
+  labels:
+    severity: warning
+  annotations:
+    summary: "High error rate for {{ $labels.service }}"
+```
+
+### High Latency
+```yaml
+- alert: HighLatency
+  expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+  for: 5m
+  labels:
+    severity: warning
+  annotations:
+    summary: "High latency detected"
+```
+
+### Low Memory
+```yaml
+- alert: LowMemory
+  expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 90
+  for: 2m
+  labels:
+    severity: critical
+  annotations:
+    summary: "Low memory on {{ $labels.host }}"
+```
+
+### High Disk Usage
+```yaml
+- alert: HighDiskUsage
+  expr: (1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 > 85
+  for: 5m
+  labels:
+    severity: warning
+  annotations:
+    summary: "High disk usage on {{ $labels.mountpoint }}"
+```
+
+## Dashboard Panels
+
+### Multi-Region Overview
+- Request rate by region
+- Error rate comparison
+- P95 latency by region
+- Variables: `$region`, `$cluster`
+
+### HTTP Services (RED)
+- Request rate by service
+- Error rate by service
+- Response time (P50/P95) by service
+- HTTP status codes breakdown
+
+### Node Metrics (USE)
+- CPU utilization
+- Memory usage
+- Disk I/O
+- Network traffic
+
+### Application Metrics
+- Transaction rates
+- Queue depths
+- Cache hit ratio
+- Database connections
