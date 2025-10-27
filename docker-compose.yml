@@ -1,7 +1,7 @@
 services:
   # Python Mock Exporter
   mock-exporter-python:
-    build: ./mock-exporter-python
+    image: ghcr.io/duyne-me/mock-exporter-python:latest
     container_name: mock-exporter-python
     ports:
       - "2112:2112"
@@ -12,11 +12,10 @@ services:
     networks:
       - promnet
 
-  # Legacy Go mock-exporter (for comparison)
-  mock-exporter:
-    # build: ./mock-exporter
-    image: ghcr.io/duyne-me/mock-exporter:latest
-    container_name: mock-exporter
+  # Go Mock Exporter
+  mock-exporter-golang:
+    image: ghcr.io/duyne-me/mock-exporter-golang:latest
+    container_name: mock-exporter-golang
     ports:
       - "2113:2112"
     networks:
