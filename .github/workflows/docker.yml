@@ -21,11 +21,10 @@ jobs:
         include:
           - variant: golang
             context: ./mock-exporter/golang
-            file: Dockerfile
+            file: ./mock-exporter/golang/Dockerfile
           - variant: python
             context: ./mock-exporter/python
-            file: Dockerfile
-
+            file: ./mock-exporter/python/Dockerfile
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -51,5 +50,4 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/mock-exporter-${{ matrix.variant }}:latest
             ghcr.io/${{ github.repository_owner }}/mock-exporter-${{ matrix.variant }}:latest
