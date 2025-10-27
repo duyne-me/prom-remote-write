@@ -8,7 +8,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 WORKDIR /app
 
 # Copy application files
-COPY main.py config.yml ./
+COPY main.py config.yml pyproject.toml ./
 
 # Install dependencies directly
 RUN uv pip install --system prometheus-client pyyaml fastapi uvicorn
