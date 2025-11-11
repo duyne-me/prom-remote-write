@@ -11,17 +11,17 @@ graph TB
     end
     
     subgraph "Dev Environment"
-        VMA_DEV[vmagent<br/>ap-southeast-1-dev-eks-01<br/>env: dev]
+        VMA_DEV[vmagent<br/>ap-southeast-1-eks-01-dev<br/>env: dev]
     end
     
     subgraph "Prod Environment - US East (HA)"
-        VMA_US1[vmagent<br/>us-east-1-prod-eks-01<br/>env: prod]
-        VMA_US2[vmagent<br/>us-east-1-prod-eks-02<br/>env: prod]
+        VMA_US1[vmagent<br/>us-east-1-eks-01-prod<br/>env: prod]
+        VMA_US2[vmagent<br/>us-east-1-eks-02-prod<br/>env: prod]
     end
     
     subgraph "Prod Environment - EU & APAC"
-        VMA_EU[vmagent<br/>eu-west-1-prod-eks-01<br/>env: prod]
-        VMA_AP[vmagent<br/>ap-southeast-1-prod-eks-01<br/>env: prod]
+        VMA_EU[vmagent<br/>eu-west-1-eks-01-prod<br/>env: prod]
+        VMA_AP[vmagent<br/>ap-southeast-1-eks-01-prod<br/>env: prod]
     end
     
     subgraph "Legacy Push Flow"
@@ -108,12 +108,12 @@ Application/Mock Exporter → vmagent (cùng cluster) → vminsert → vmstorage
 ```
 
 **5 vmagent Clusters**:
-- **Dev Environment**: `ap-southeast-1-dev-eks-01`
+- **Dev Environment**: `ap-southeast-1-eks-01-dev`
 - **Prod Environment**:
-  - `us-east-1-prod-eks-01` (HA cluster 1)
-  - `us-east-1-prod-eks-02` (HA cluster 2)
-  - `eu-west-1-prod-eks-01`
-  - `ap-southeast-1-prod-eks-01`
+  - `us-east-1-eks-01-prod` (HA cluster 1)
+  - `us-east-1-eks-02-prod` (HA cluster 2)
+  - `eu-west-1-eks-01-prod`
+  - `ap-southeast-1-eks-01-prod`
 
 **Key Features**:
 - Mỗi vmagent scrape applications trong cluster của nó
@@ -187,8 +187,8 @@ remote_write:
 |-----------|-------|-------------------|------|
 | **Mock Exporter (Python)** | Generate 340+ Prometheus-compliant metrics | 1 | 2112 |
 | **VictoriaMetrics Cluster** | Distributed TSDB | 2x vminsert, 2x vmselect, 2x vmstorage | 8480-8482 |
-| **vmagent (Dev)** | Dev environment monitoring | ap-southeast-1-dev-eks-01 | 8429 |
-| **vmagent (Prod)** | Production monitoring | us-east-1-prod-eks-01/02, eu-west-1-prod-eks-01, ap-southeast-1-prod-eks-01 | 8430-8433 |
+| **vmagent (Dev)** | Dev environment monitoring | ap-southeast-1-eks-01-dev | 8429 |
+| **vmagent (Prod)** | Production monitoring | us-east-1-eks-01-prod/02, eu-west-1-eks-01-prod, ap-southeast-1-eks-01-prod | 8430-8433 |
 | **vmagent-receiver-scraper** | Scrape prometheus-receiver | 1 | 8434 |
 | **prometheus-receiver** | Remote write endpoint cho legacy systems | 1 | 9091 |
 | **blackbox-exporter** | Network probe cho cross-region latency | 1 | 9115 |
@@ -198,11 +198,11 @@ remote_write:
 
 | Container Name | Environment | Region | Cluster | Port |
 |----------------|-------------|--------|---------|------|
-| vmagent-ap-southeast-1-dev-eks-01 | dev | ap-southeast-1 | ap-southeast-1-dev-eks-01 | 8429 |
-| vmagent-us-east-1-prod-eks-01 | prod | us-east-1 | us-east-1-prod-eks-01 | 8430 |
-| vmagent-us-east-1-prod-eks-02 | prod | us-east-1 | us-east-1-prod-eks-02 | 8431 |
-| vmagent-eu-west-1-prod-eks-01 | prod | eu-west-1 | eu-west-1-prod-eks-01 | 8432 |
-| vmagent-ap-southeast-1-prod-eks-01 | prod | ap-southeast-1 | ap-southeast-1-prod-eks-01 | 8433 |
+| vmagent-ap-southeast-1-eks-01-dev | dev | ap-southeast-1 | ap-southeast-1-eks-01-dev | 8429 |
+| vmagent-us-east-1-eks-01-prod | prod | us-east-1 | us-east-1-eks-01-prod | 8430 |
+| vmagent-us-east-1-eks-02-prod | prod | us-east-1 | us-east-1-eks-02-prod | 8431 |
+| vmagent-eu-west-1-eks-01-prod | prod | eu-west-1 | eu-west-1-eks-01-prod | 8432 |
+| vmagent-ap-southeast-1-eks-01-prod | prod | ap-southeast-1 | ap-southeast-1-eks-01-prod | 8433 |
 
 ## Metrics Generated
 
@@ -308,13 +308,13 @@ Dự án bao gồm 4 production-ready dashboards:
 Tất cả vmagents dùng `external_labels` để consistent labeling:
 
 ```yaml
-# vmagent/us-east-1-prod-eks-01.yml
+# vmagent/us-east-1-eks-01-prod.yml
 global:
   scrape_interval: 15s
   external_labels:
     env: "prod"
     region: "us-east-1"
-    cluster: "us-east-1-prod-eks-01"
+    cluster: "us-east-1-eks-01-prod"
     availability_zone: "us-east-1a"
 
 scrape_configs:
@@ -357,9 +357,9 @@ scrape_configs:
 **Cluster naming**: `{region}-{env}-{cluster_type}-{number}`
 
 Ví dụ:
-- `us-east-1-prod-eks-01`
-- `ap-southeast-1-dev-eks-01`
-- `eu-west-1-prod-eks-01`
+- `us-east-1-eks-01-prod`
+- `ap-southeast-1-eks-01-dev`
+- `eu-west-1-eks-01-prod`
 
 **Benefits**:
 - Phân tách rõ environment (dev/prod)
@@ -379,8 +379,8 @@ histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by 
 avg by (cluster) (node_memory_MemAvailable_bytes{region="us-east-1", env="prod"})
 
 # Error rate theo service trong cluster cụ thể
-sum by (service) (rate(http_requests_total{env="prod", cluster="us-east-1-prod-eks-01", status_code=~"5.."}[5m])) / 
-sum by (service) (rate(http_requests_total{env="prod", cluster="us-east-1-prod-eks-01"}[5m])) * 100
+sum by (service) (rate(http_requests_total{env="prod", cluster="us-east-1-eks-01-prod", status_code=~"5.."}[5m])) / 
+sum by (service) (rate(http_requests_total{env="prod", cluster="us-east-1-eks-01-prod"}[5m])) * 100
 
 # vmagent remote write latency P95
 histogram_quantile(0.95, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket[5m])) by (le, cluster))
@@ -426,11 +426,11 @@ probe_duration_seconds{job="blackbox"}
 - **9091**: Prometheus Receiver (remote write endpoint)
 - **9115**: Blackbox Exporter
 - **2112**: Mock Exporter Python
-- **8429**: vmagent-ap-southeast-1-dev-eks-01
-- **8430**: vmagent-us-east-1-prod-eks-01
-- **8431**: vmagent-us-east-1-prod-eks-02
-- **8432**: vmagent-eu-west-1-prod-eks-01
-- **8433**: vmagent-ap-southeast-1-prod-eks-01
+- **8429**: vmagent-ap-southeast-1-eks-01-dev
+- **8430**: vmagent-us-east-1-eks-01-prod
+- **8431**: vmagent-us-east-1-eks-02-prod
+- **8432**: vmagent-eu-west-1-eks-01-prod
+- **8433**: vmagent-ap-southeast-1-eks-01-prod
 - **8434**: vmagent-receiver-scraper
 
 ## Documentation

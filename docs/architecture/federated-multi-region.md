@@ -9,7 +9,7 @@ This document describes an alternative architecture pattern: **Federated Multi-R
 ```mermaid
 graph TB
     subgraph "US East 1 Region"
-        VMA_US1[vmagent<br/>us-east-1-prod-eks-01]
+        VMA_US1[vmagent<br/>us-east-1-eks-01-prod]
         VMI_US1[vminsert-1<br/>us-east-1]
         VMS_US1[vmselect-1<br/>us-east-1]
         VMST_US1[vmstorage-1<br/>us-east-1]
@@ -17,7 +17,7 @@ graph TB
     end
     
     subgraph "EU West 1 Region"
-        VMA_EU[vmagent<br/>eu-west-1-prod-eks-01]
+        VMA_EU[vmagent<br/>eu-west-1-eks-01-prod]
         VMI_EU1[vminsert-1<br/>eu-west-1]
         VMS_EU1[vmselect-1<br/>eu-west-1]
         VMST_EU1[vmstorage-1<br/>eu-west-1]
@@ -25,7 +25,7 @@ graph TB
     end
     
     subgraph "AP Southeast 1 Region"
-        VMA_AP[vmagent<br/>ap-southeast-1-prod-eks-01]
+        VMA_AP[vmagent<br/>ap-southeast-1-eks-01-prod]
         VMI_AP1[vminsert-1<br/>ap-southeast-1]
         VMS_AP1[vmselect-1<br/>ap-southeast-1]
         VMST_AP1[vmstorage-1<br/>ap-southeast-1]
@@ -108,13 +108,13 @@ Similar structure, but components named `vmstorage-eu-west-1-*`, etc.
 Each vmagent remote writes to its **local** cluster:
 
 ```yaml
-# vmagent/eu-west-1-prod-eks-01.yml
+# vmagent/eu-west-1-eks-01-prod.yml
 global:
   external_labels:
     env: "prod"
     region: "eu-west-1"
     storage_region: "eu-west-1"  # Local cluster, not us-east-1
-    cluster: "eu-west-1-prod-eks-01"
+    cluster: "eu-west-1-eks-01-prod"
 
 # Remote write to LOCAL cluster
 command:
@@ -326,13 +326,13 @@ services:
 ### vmagent Configuration
 
 ```yaml
-# vmagent/eu-west-1-prod-eks-01.yml
+# vmagent/eu-west-1-eks-01-prod.yml
 global:
   external_labels:
     env: "prod"
     region: "eu-west-1"
     storage_region: "eu-west-1"  # Local cluster
-    cluster: "eu-west-1-prod-eks-01"
+    cluster: "eu-west-1-eks-01-prod"
 
 # Remote write to LOCAL cluster
 command:

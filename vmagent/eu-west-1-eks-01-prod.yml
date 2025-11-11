@@ -1,17 +1,15 @@
-# vmagent configuration for Production Environment - Cluster 2
-# Cluster: us-east-1-prod-eks-02
-# Region: us-east-1 (N. Virginia)
+# vmagent configuration for Production Environment
+# Cluster: eu-west-1-eks-01-prod
+# Region: eu-west-1 (Ireland)
 # Environment: prod
-# High Availability: Cluster 2 of 2
 
 global:
   scrape_interval: 15s
   external_labels:
     env: "prod"
-    region: "us-east-1"
+    region: "eu-west-1"
     storage_region: "us-east-1"  # VictoriaMetrics cluster location
-    cluster: "us-east-1-prod-eks-02"
-    availability_zone: "us-east-1b"
+    cluster: "eu-west-1-eks-01-prod"
 
 scrape_configs:
   # Scrape mock exporter (application metrics)
@@ -21,7 +19,7 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-        replacement: "mock-exporter-us-east-1-prod-02"
+        replacement: "mock-exporter-eu-west-1-prod"
   
   # Self-scrape for vmagent internal metrics (includes scrape_duration_seconds)
   - job_name: "vmagent"
@@ -47,9 +45,7 @@ scrape_configs:
       - target_label: __address__
         replacement: blackbox-exporter:9115
       - target_label: source_region
-        replacement: "us-east-1"
+        replacement: "eu-west-1"
       - target_label: source_env
         replacement: "prod"
-      - target_label: source_cluster
-        replacement: "us-east-1-prod-eks-02"
 

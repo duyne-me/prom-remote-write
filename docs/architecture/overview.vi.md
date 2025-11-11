@@ -75,7 +75,7 @@ Tất cả VictoriaMetrics components nằm ở us-east-1. Centralized approach 
 ### vmagent Instances
 
 #### Development Environment
-**Cluster**: `ap-southeast-1-dev-eks-01`
+**Cluster**: `ap-southeast-1-eks-01-dev`
 - **Environment**: dev
 - **Region**: ap-southeast-1 (Singapore)
 - **AZ**: ap-southeast-1a
@@ -84,14 +84,14 @@ Tất cả VictoriaMetrics components nằm ở us-east-1. Centralized approach 
 
 #### Production Environment - US East (High Availability)
 
-**Cluster 1**: `us-east-1-prod-eks-01`
+**Cluster 1**: `us-east-1-eks-01-prod`
 - **Environment**: prod
 - **Region**: us-east-1 (N. Virginia)
 - **AZ**: us-east-1a
 - **Remote Write**: vminsert-1
 - **Port**: 8430
 
-**Cluster 2**: `us-east-1-prod-eks-02`
+**Cluster 2**: `us-east-1-eks-02-prod`
 - **Environment**: prod
 - **Region**: us-east-1 (N. Virginia)
 - **AZ**: us-east-1b
@@ -100,7 +100,7 @@ Tất cả VictoriaMetrics components nằm ở us-east-1. Centralized approach 
 
 #### Production Environment - Europe
 
-**Cluster**: `eu-west-1-prod-eks-01`
+**Cluster**: `eu-west-1-eks-01-prod`
 - **Environment**: prod
 - **Region**: eu-west-1 (Ireland)
 - **AZ**: eu-west-1a
@@ -109,7 +109,7 @@ Tất cả VictoriaMetrics components nằm ở us-east-1. Centralized approach 
 
 #### Production Environment - Asia Pacific
 
-**Cluster**: `ap-southeast-1-prod-eks-01`
+**Cluster**: `ap-southeast-1-eks-01-prod`
 - **Environment**: prod
 - **Region**: ap-southeast-1 (Singapore)
 - **AZ**: ap-southeast-1a
@@ -127,8 +127,7 @@ Tất cả metrics có các labels này (từ external_labels):
 | `env` | dev, prod, monitoring | Environment isolation |
 | `region` | us-east-1, eu-west-1, ap-southeast-1, local | Source region (nơi vmagent đặt) |
 | `storage_region` | us-east-1 | Storage region (nơi VictoriaMetrics cluster đặt) |
-| `cluster` | {region}-{env}-{type}-{number} | Cluster identification |
-| `availability_zone` | us-east-1a, us-east-1b, etc. | AZ cho HA setup |
+| `cluster` | {region}-eks-{number}-{env} | Cluster identification |
 
 **Phân biệt quan trọng**:
 - `region`: Nơi metrics được **generate** (vmagent location)
@@ -146,7 +145,7 @@ Tất cả metrics có các labels này (từ external_labels):
 {region="us-east-1"}
 
 # Filter theo specific cluster
-{cluster="us-east-1-prod-eks-01"}
+{cluster="us-east-1-eks-01-prod"}
 
 # Filter prod trong specific region
 {env="prod", region="eu-west-1"}
@@ -169,7 +168,7 @@ Tất cả metrics có các labels này (từ external_labels):
 **Giải pháp**: 2 clusters tại us-east-1 across khác AZs
 - Nếu eks-01 (AZ-a) fails, eks-02 (AZ-b) tiếp tục hoạt động
 - Mỗi cluster có vmagent độc lập
-- Metrics được label rõ ràng: `cluster="us-east-1-prod-eks-01"`
+- Metrics được label rõ ràng: `cluster="us-east-1-eks-01-prod"`
 
 ### Multi-Region cho Global Reach
 **Vấn đề**: High latency cho users xa datacenter  
@@ -239,7 +238,7 @@ Tất cả metrics có các labels này (từ external_labels):
 ### vmagent Không Gửi Metrics
 ```bash
 # Check vmagent logs
-docker logs vmagent-us-east-1-prod-eks-01
+docker logs vmagent-us-east-1-eks-01-prod
 
 # Check pending bytes (nên thấp)
 curl localhost:8430/metrics | grep pending_bytes

@@ -121,18 +121,18 @@ services:
   # - Scrapes applications in its cluster (mock-exporter)
   # - Self-scrapes for internal metrics (scrape_duration_seconds, etc.)
   # - Probes blackbox-exporter for cross-region latency
-  # - Adds external_labels: env, region, cluster, availability_zone
+  # - Adds external_labels: env, region, cluster
   # - Remote writes directly to vminsert (no intermediary)
   #
-  # Naming convention: {region}-{env}-{cluster_type}-{number}
+  # Naming convention: {region}-eks-{number}-{env}
   # ============================================================================
 
   # DEV ENVIRONMENT - Development cluster in Singapore
-  # Cluster: ap-southeast-1-dev-eks-01
+  # Cluster: ap-southeast-1-eks-01-dev
   # Purpose: Development and testing environment
-  vmagent-ap-southeast-1-dev-eks-01:
+  vmagent-ap-southeast-1-eks-01-dev:
     image: victoriametrics/vmagent:latest
-    container_name: vmagent-ap-southeast-1-dev-eks-01
+    container_name: vmagent-ap-southeast-1-eks-01-dev
     command:
       - "--promscrape.config=/etc/vmagent/config.yml"
       - "--remoteWrite.url=http://vminsert-1:8480/insert/0/prometheus/api/v1/write"
@@ -140,7 +140,7 @@ services:
     ports:
       - "8429:8429"
     volumes:
-      - ./vmagent/ap-southeast-1-dev-eks-01.yml:/etc/vmagent/config.yml:ro
+      - ./vmagent/ap-southeast-1-eks-01-dev.yml:/etc/vmagent/config.yml:ro
     depends_on:
       - mock-exporter-python
       - vminsert-1
@@ -148,12 +148,11 @@ services:
       - promnet
 
   # PROD ENVIRONMENT - Production cluster 1 in US East (HA setup)
-  # Cluster: us-east-1-prod-eks-01
+  # Cluster: us-east-1-eks-01-prod
   # Purpose: Production workloads, HA pair with eks-02
-  # AZ: us-east-1a
-  vmagent-us-east-1-prod-eks-01:
+  vmagent-us-east-1-eks-01-prod:
     image: victoriametrics/vmagent:latest
-    container_name: vmagent-us-east-1-prod-eks-01
+    container_name: vmagent-us-east-1-eks-01-prod
     command:
       - "--promscrape.config=/etc/vmagent/config.yml"
       - "--remoteWrite.url=http://vminsert-1:8480/insert/0/prometheus/api/v1/write"
@@ -161,7 +160,7 @@ services:
     ports:
       - "8430:8429"
     volumes:
-      - ./vmagent/us-east-1-prod-eks-01.yml:/etc/vmagent/config.yml:ro
+      - ./vmagent/us-east-1-eks-01-prod.yml:/etc/vmagent/config.yml:ro
     depends_on:
       - mock-exporter-python
       - vminsert-1
@@ -169,12 +168,11 @@ services:
       - promnet
 
   # PROD ENVIRONMENT - Production cluster 2 in US East (HA setup)
-  # Cluster: us-east-1-prod-eks-02
+  # Cluster: us-east-1-eks-02-prod
   # Purpose: Production workloads, HA pair with eks-01
-  # AZ: us-east-1b (different AZ for fault tolerance)
-  vmagent-us-east-1-prod-eks-02:
+  vmagent-us-east-1-eks-02-prod:
     image: victoriametrics/vmagent:latest
-    container_name: vmagent-us-east-1-prod-eks-02
+    container_name: vmagent-us-east-1-eks-02-prod
     command:
       - "--promscrape.config=/etc/vmagent/config.yml"
       - "--remoteWrite.url=http://vminsert-2:8480/insert/0/prometheus/api/v1/write"
@@ -182,7 +180,7 @@ services:
     ports:
       - "8431:8429"
     volumes:
-      - ./vmagent/us-east-1-prod-eks-02.yml:/etc/vmagent/config.yml:ro
+      - ./vmagent/us-east-1-eks-02-prod.yml:/etc/vmagent/config.yml:ro
     depends_on:
       - mock-exporter-python
       - vminsert-2
@@ -190,11 +188,11 @@ services:
       - promnet
 
   # PROD ENVIRONMENT - Production cluster in EU West
-  # Cluster: eu-west-1-prod-eks-01
+  # Cluster: eu-west-1-eks-01-prod
   # Purpose: Serve European users with low latency
-  vmagent-eu-west-1-prod-eks-01:
+  vmagent-eu-west-1-eks-01-prod:
     image: victoriametrics/vmagent:latest
-    container_name: vmagent-eu-west-1-prod-eks-01
+    container_name: vmagent-eu-west-1-eks-01-prod
     command:
       - "--promscrape.config=/etc/vmagent/config.yml"
       - "--remoteWrite.url=http://vminsert-1:8480/insert/0/prometheus/api/v1/write"
@@ -202,7 +200,7 @@ services:
     ports:
       - "8432:8429"
     volumes:
-      - ./vmagent/eu-west-1-prod-eks-01.yml:/etc/vmagent/config.yml:ro
+      - ./vmagent/eu-west-1-eks-01-prod.yml:/etc/vmagent/config.yml:ro
     depends_on:
       - mock-exporter-python
       - vminsert-1
@@ -210,11 +208,11 @@ services:
       - promnet
 
   # PROD ENVIRONMENT - Production cluster in Singapore
-  # Cluster: ap-southeast-1-prod-eks-01
+  # Cluster: ap-southeast-1-eks-01-prod
   # Purpose: Serve APAC users with low latency
-  vmagent-ap-southeast-1-prod-eks-01:
+  vmagent-ap-southeast-1-eks-01-prod:
     image: victoriametrics/vmagent:latest
-    container_name: vmagent-ap-southeast-1-prod-eks-01
+    container_name: vmagent-ap-southeast-1-eks-01-prod
     command:
       - "--promscrape.config=/etc/vmagent/config.yml"
       - "--remoteWrite.url=http://vminsert-2:8480/insert/0/prometheus/api/v1/write"
@@ -222,7 +220,7 @@ services:
     ports:
       - "8433:8429"
     volumes:
-      - ./vmagent/ap-southeast-1-prod-eks-01.yml:/etc/vmagent/config.yml:ro
+      - ./vmagent/ap-southeast-1-eks-01-prod.yml:/etc/vmagent/config.yml:ro
     depends_on:
       - mock-exporter-python
       - vminsert-2

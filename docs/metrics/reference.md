@@ -751,8 +751,7 @@ All metrics scraped by vmagents have these labels from `external_labels`:
 | `env` | Environment (dev/prod/monitoring) | `dev`, `prod`, `monitoring` |
 | `region` | Source region (where vmagent is located) | `us-east-1`, `eu-west-1`, `ap-southeast-1` |
 | `storage_region` | Storage region (where VictoriaMetrics cluster is located) | `us-east-1` |
-| `cluster` | Cluster identifier | `us-east-1-prod-eks-01` |
-| `availability_zone` | Availability zone for HA | `us-east-1a`, `us-east-1b` |
+| `cluster` | Cluster identifier | `us-east-1-eks-01-prod` |
 
 **Key Distinction**:
 - `region`: Where metrics are **generated** (vmagent location)
@@ -771,7 +770,7 @@ With the new multi-environment setup, queries can filter by env/cluster/storage_
 {env="prod"}
 
 # Specific cluster
-{cluster="us-east-1-prod-eks-01"}
+{cluster="us-east-1-eks-01-prod"}
 
 # All metrics stored in us-east-1
 {storage_region="us-east-1"}

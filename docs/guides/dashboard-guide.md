@@ -79,8 +79,8 @@ This guide explains how to use each of the 4 pre-configured Grafana dashboards.
 - **Values**: Dynamic based on selected `$env`
 - **Purpose**: Drill down to specific cluster
 - **Examples**: 
-  - If env=prod: us-east-1-prod-eks-01, us-east-1-prod-eks-02, etc.
-  - If env=dev: ap-southeast-1-dev-eks-01
+  - If env=prod: us-east-1-eks-01-prod, us-east-1-eks-02-prod, etc.
+  - If env=dev: ap-southeast-1-eks-01-dev
 
 ### Key Panels
 
@@ -146,7 +146,7 @@ This guide explains how to use each of the 4 pre-configured Grafana dashboards.
 
 **Workflow 1: Daily Performance Check**
 1. Select env=prod
-2. Select cluster=us-east-1-prod-eks-01
+2. Select cluster=us-east-1-eks-01-prod
 3. Check current error rate (should be < 1%)
 4. Check p95 latency (should be < 500ms)
 5. Review top 10 slowest endpoints

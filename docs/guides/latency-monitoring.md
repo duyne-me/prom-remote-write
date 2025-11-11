@@ -21,7 +21,7 @@ This guide covers all aspects of latency monitoring in the multi-environment, mu
 histogram_quantile(0.95, sum(rate(scrape_duration_seconds_bucket[5m])) by (le, cluster))
 
 # Scrape latency for specific cluster
-scrape_duration_seconds{cluster="us-east-1-prod-eks-01"}
+scrape_duration_seconds{cluster="us-east-1-eks-01-prod"}
 
 # Identify slow scrapes
 scrape_duration_seconds > 5
@@ -211,10 +211,10 @@ This is the primary dashboard for monitoring infrastructure latency.
 **Diagnosis**:
 ```bash
 # 1. Check vmagent logs
-docker logs vmagent-us-east-1-prod-eks-01 | grep -i error
+docker logs vmagent-us-east-1-eks-01-prod | grep -i error
 
 # 2. Check network latency to vminsert
-docker exec vmagent-us-east-1-prod-eks-01 ping vminsert-1
+docker exec vmagent-us-east-1-eks-01-prod ping vminsert-1
 
 # 3. Check vminsert health
 curl http://vminsert-1:8480/metrics | grep vm_http_requests_total
@@ -241,7 +241,7 @@ docker stats vmstorage-1 vmstorage-2
 curl http://mock-exporter-python:2112/metrics
 
 # Check vmagent scrape config
-docker exec vmagent-us-east-1-prod-eks-01 cat /etc/vmagent/config.yml
+docker exec vmagent-us-east-1-eks-01-prod cat /etc/vmagent/config.yml
 ```
 
 **Solutions**:
@@ -275,13 +275,13 @@ To test how the system behaves under various latency conditions, use the provide
 
 ```bash
 # Add 100ms latency + 20ms jitter to EU cluster
-./scripts/simulate-latency.sh add vmagent-eu-west-1-prod-eks-01 100 20
+./scripts/simulate-latency.sh add vmagent-eu-west-1-eks-01-prod 100 20
 
 # Check latency effect in dashboard
 # Monitoring Stack Health → vmagent Remote Write Latency panel
 
 # Remove latency
-./scripts/simulate-latency.sh remove vmagent-eu-west-1-prod-eks-01
+./scripts/simulate-latency.sh remove vmagent-eu-west-1-eks-01-prod
 ```
 
 **Test Scenarios**:
@@ -532,7 +532,7 @@ rate(vm_http_requests_total{job="vminsert"}[1h])
 docker ps -a | grep vminsert
 
 # Check network latency
-docker exec vmagent-us-east-1-prod-eks-01 ping -c 5 vminsert-1
+docker exec vmagent-us-east-1-eks-01-prod ping -c 5 vminsert-1
 
 # Check vmstorage health
 curl http://vmstorage-1:8482/metrics | grep vm_rows_inserted

@@ -27,11 +27,11 @@ This will start:
 - **Mock Exporter** (Python) - Generates 340+ production-like metrics
 - **VictoriaMetrics Cluster** - 2x vminsert, 2x vmselect, 2x vmstorage
 - **5 vmagent Instances**:
-  - ap-southeast-1-dev-eks-01 (dev environment)
-  - us-east-1-prod-eks-01 (prod HA cluster 1)
-  - us-east-1-prod-eks-02 (prod HA cluster 2)
-  - eu-west-1-prod-eks-01 (prod)
-  - ap-southeast-1-prod-eks-01 (prod)
+  - ap-southeast-1-eks-01-dev (dev environment)
+  - us-east-1-eks-01-prod (prod HA cluster 1)
+  - us-east-1-eks-02-prod (prod HA cluster 2)
+  - eu-west-1-eks-01-prod (prod)
+  - ap-southeast-1-eks-01-prod (prod)
 - **vmagent-receiver-scraper** - For legacy push flow
 - **prometheus-receiver** - Remote write endpoint
 - **blackbox-exporter** - Network probes
@@ -90,7 +90,7 @@ Grafana includes 4 production-ready dashboards:
 
 **Quick Check**:
 - Select Environment: prod
-- Select Cluster: us-east-1-prod-eks-01
+- Select Cluster: us-east-1-eks-01-prod
 - Request Rate should show traffic
 - Error Rate should be low (< 5%)
 - Latency heatmap shows distribution
@@ -123,7 +123,7 @@ curl -s 'http://localhost:8481/select/0/prometheus/api/v1/query?query=count(up)'
 curl -s 'http://localhost:8481/select/0/prometheus/api/v1/query?query=up{env="prod"}' | jq
 
 # Query by cluster
-curl -s 'http://localhost:8481/select/0/prometheus/api/v1/query?query=up{cluster="us-east-1-prod-eks-01"}' | jq
+curl -s 'http://localhost:8481/select/0/prometheus/api/v1/query?query=up{cluster="us-east-1-eks-01-prod"}' | jq
 ```
 
 ### Use Grafana Explore
@@ -172,13 +172,13 @@ Test how system behaves under different latency conditions:
 
 ```bash
 # Add 100ms latency to EU cluster
-./scripts/simulate-latency.sh add vmagent-eu-west-1-prod-eks-01 100 20
+./scripts/simulate-latency.sh add vmagent-eu-west-1-eks-01-prod 100 20
 
 # Watch "Monitoring Stack Health" dashboard
 # Remote Write Latency should increase for EU cluster
 
 # Remove latency
-./scripts/simulate-latency.sh remove vmagent-eu-west-1-prod-eks-01
+./scripts/simulate-latency.sh remove vmagent-eu-west-1-eks-01-prod
 ```
 
 See [Network Latency Simulation Guide](network-latency-simulation.md) for detailed testing scenarios.
@@ -219,10 +219,10 @@ netstat -ano | findstr :3001
 **Check**:
 ```bash
 # Check vmagent logs
-docker logs vmagent-us-east-1-prod-eks-01
+docker logs vmagent-us-east-1-eks-01-prod
 
 # Check if vmagent can reach vminsert
-docker exec vmagent-us-east-1-prod-eks-01 wget -O- http://vminsert-1:8480/health
+docker exec vmagent-us-east-1-eks-01-prod wget -O- http://vminsert-1:8480/health
 
 # Check vmagent metrics
 curl http://localhost:8430/metrics | grep remotewrite
@@ -237,7 +237,7 @@ Check logs for specific service:
 docker compose logs
 
 # Specific service
-docker compose logs vmagent-us-east-1-prod-eks-01
+docker compose logs vmagent-us-east-1-eks-01-prod
 docker compose logs vminsert-1
 docker compose logs vmstorage-1
 ```

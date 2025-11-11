@@ -118,7 +118,7 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
 ### vmagent Instances
 
 #### Development Environment
-**Cluster**: `ap-southeast-1-dev-eks-01`
+**Cluster**: `ap-southeast-1-eks-01-dev`
 - **Environment**: dev
 - **Region**: ap-southeast-1 (Singapore)
 - **AZ**: ap-southeast-1a
@@ -127,14 +127,14 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
 
 #### Production Environment - US East (High Availability)
 
-**Cluster 1**: `us-east-1-prod-eks-01`
+**Cluster 1**: `us-east-1-eks-01-prod`
 - **Environment**: prod
 - **Region**: us-east-1 (N. Virginia)
 - **AZ**: us-east-1a
 - **Remote Write**: vminsert-1
 - **Port**: 8430
 
-**Cluster 2**: `us-east-1-prod-eks-02`
+**Cluster 2**: `us-east-1-eks-02-prod`
 - **Environment**: prod
 - **Region**: us-east-1 (N. Virginia)
 - **AZ**: us-east-1b
@@ -143,7 +143,7 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
 
 #### Production Environment - Europe
 
-**Cluster**: `eu-west-1-prod-eks-01`
+**Cluster**: `eu-west-1-eks-01-prod`
 - **Environment**: prod
 - **Region**: eu-west-1 (Ireland)
 - **AZ**: eu-west-1a
@@ -152,7 +152,7 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
 
 #### Production Environment - Asia Pacific
 
-**Cluster**: `ap-southeast-1-prod-eks-01`
+**Cluster**: `ap-southeast-1-eks-01-prod`
 - **Environment**: prod
 - **Region**: ap-southeast-1 (Singapore)
 - **AZ**: ap-southeast-1a
@@ -190,7 +190,7 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
    - Self metrics (localhost:8429)
    - Blackbox probes (blackbox-exporter:9115)
 3. **vmagent** applies `external_labels` to all metrics:
-   - env, region, cluster, availability_zone
+   - env, region, cluster
 4. **vmagent** batches metrics and remote write to **vminsert**
 5. **vminsert** distributes metrics to **vmstorage-1** and **vmstorage-2**
 6. **vmstorage** stores compressed time series data
@@ -218,8 +218,7 @@ All metrics have these labels (from external_labels):
 | `env` | dev, prod, monitoring | Environment isolation |
 | `region` | us-east-1, eu-west-1, ap-southeast-1, local | Source region (where vmagent is located) |
 | `storage_region` | us-east-1 | Storage region (where VictoriaMetrics cluster is located) |
-| `cluster` | {region}-{env}-{type}-{number} | Cluster identification |
-| `availability_zone` | us-east-1a, us-east-1b, etc. | AZ for HA setup |
+| `cluster` | {region}-eks-{number}-{env} | Cluster identification |
 
 **Key Distinction**:
 - `region`: Where metrics are **generated** (vmagent location)
@@ -237,7 +236,7 @@ All metrics have these labels (from external_labels):
 {region="us-east-1"}
 
 # Filter by specific cluster
-{cluster="us-east-1-prod-eks-01"}
+{cluster="us-east-1-eks-01-prod"}
 
 # Filter prod in specific region
 {env="prod", region="eu-west-1"}
@@ -259,7 +258,7 @@ All metrics have these labels (from external_labels):
 - **Failover**: Manual reconfiguration required
 
 ### US East HA
-- **2 Production Clusters**: us-east-1-prod-eks-01, us-east-1-prod-eks-02
+- **2 Production Clusters**: us-east-1-eks-01-prod, us-east-1-eks-02-prod
 - **Different AZs**: us-east-1a, us-east-1b
 - **Independent vmagents**: Each cluster has own vmagent
 - **Purpose**: Simulate Kubernetes multi-cluster HA
@@ -372,7 +371,7 @@ All services run on `promnet` bridge network:
 **Solution**: 2 clusters in us-east-1 across different AZs
 - If eks-01 (AZ-a) fails, eks-02 (AZ-b) continues
 - Each cluster has independent vmagent
-- Metrics clearly labeled: `cluster="us-east-1-prod-eks-01"`
+- Metrics clearly labeled: `cluster="us-east-1-eks-01-prod"`
 
 ### Multi-Region for Global Reach
 **Problem**: High latency for users far from datacenter  
@@ -481,7 +480,7 @@ All services run on `promnet` bridge network:
 ### vmagent Not Sending Metrics
 ```bash
 # Check vmagent logs
-docker logs vmagent-us-east-1-prod-eks-01
+docker logs vmagent-us-east-1-eks-01-prod
 
 # Check pending bytes (should be low)
 curl localhost:8430/metrics | grep pending_bytes
@@ -508,7 +507,7 @@ curl localhost:8430/metrics | grep remotewrite_errors
 curl 'http://localhost:9115/probe?target=http://mock-exporter-python:2112&module=http_2xx'
 
 # Check vmagent blackbox scrape config
-docker exec vmagent-us-east-1-prod-eks-01 cat /etc/vmagent/config.yml
+docker exec vmagent-us-east-1-eks-01-prod cat /etc/vmagent/config.yml
 ```
 
 ## Next Steps

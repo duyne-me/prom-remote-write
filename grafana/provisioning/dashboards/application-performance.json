@@ -700,8 +700,8 @@
       {
         "current": {
           "selected": false,
-          "text": "us-east-1-prod-eks-01",
-          "value": "us-east-1-prod-eks-01"
+          "text": "us-east-1-eks-01-prod",
+          "value": "us-east-1-eks-01-prod"
         },
         "datasource": {
           "type": "prometheus",
