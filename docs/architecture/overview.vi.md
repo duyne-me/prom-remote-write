@@ -1,199 +1,248 @@
-# Architecture Documentation
+# Tổng quan Kiến trúc
 
-## Tổng quan kiến trúc
+## Giới thiệu
 
-Dự án này demo 2 kiến trúc observability khác nhau:
+Dự án demo kiến trúc monitoring production-ready, multi-environment, multi-cluster sử dụng VictoriaMetrics và vmagent. Setup mô phỏng các scenarios thực tế với:
 
-1. **Prometheus Native**: Prometheus Writer → Prometheus Receiver
-2. **VictoriaMetrics Production**: vmagent (multi-region) → vminsert → vmstorage ← vmselect
+- **Multi-Environment**: Môi trường dev và prod riêng biệt
+- **Multi-Cluster**: 5 clusters độc lập across 3 AWS regions
+- **High Availability**: 2 production clusters tại US East cho redundancy
+- **Multi-Region**: us-east-1, eu-west-1, ap-southeast-1
+- **Legacy Support**: Prometheus receiver cho external/legacy systems
 
-## Luồng dữ liệu chi tiết
+## Kiến trúc Tổng thể
 
-### Flow 1: Prometheus Native
+### 3 Luồng Dữ Liệu Chính
 
+**Flow 1: Scraping (Luồng chính)**
 ```
-mock-exporter-python:2112/metrics
-    ↓ (scrape)
-prometheus-writer:9090
-    ↓ (remote_write)
-prometheus-receiver:9091
-    ↓ (query)
-Grafana:3000
+Application → vmagent (cùng cluster) → vminsert → vmstorage
 ```
+- 5 vmagents (1 dev + 4 prod)
+- Mỗi vmagent scrape applications trong cluster của nó
+- Self-scrape cho internal metrics
+- Blackbox probes cho cross-region monitoring
 
-**Config**: `prometheus/writer.yml`
-- Scrape interval: 5s
-- Remote write timeout: 30s
-- Labels: cluster=dev-cluster, region=local, environment=staging
-
-### Flow 2: VictoriaMetrics Multi-Region
-
+**Flow 2: Pushing (Legacy Support)**
 ```
-mock-exporter-python:2112/metrics
-    ↓ (scrape × 4)
-vmagent-us-east-1    vmagent-eu-west-1    vmagent-ap-southeast-1    vmagent-sa-east-1
-    ↓ (external_labels)  ↓ (external_labels)  ↓ (external_labels)    ↓ (external_labels)
-    region=us-east-1     region=eu-west-1     region=ap-southeast-1   region=sa-east-1
-    cluster=prod-us      cluster=prod-eu      cluster=prod-apac      cluster=prod-sa
-    environment=prod     environment=prod     environment=prod       environment=prod
-    ↓ (remote_write)     ↓ (remote_write)     ↓ (remote_write)       ↓ (remote_write)
-                vminsert-1:8480    vminsert-2:8480
-                        ↓ (distribute)
-                vmstorage-1:8482   vmstorage-2:8482
-                        ↓ (query)
-                vmselect-1:8481    vmselect-2:8481
-                        ↓ (query)
-                    Grafana:3001
+External/Legacy → prometheus-receiver → vmagent-receiver-scraper → vminsert
 ```
+- Cho phép external Prometheus remote write vào
+- vmagent-receiver-scraper forward đến VictoriaMetrics
 
-## VictoriaMetrics Cluster Architecture
+**Flow 3: Query**
+```
+Grafana → vmselect → vmstorage
+```
+- Tất cả data trong một VictoriaMetrics cluster
+- Phân biệt bằng labels: env, region, cluster
 
-### Components
+## Chi Tiết Components
+
+### VictoriaMetrics Cluster
 
 #### vmstorage (Storage Layer)
-- **2 replicas**: vmstorage-1, vmstorage-2
-- **Function**: Lưu trữ time series data
-- **Port**: 8482
-- **Data path**: `/vmstorage-data`
-- **Retention**: 1 year
-- **Replication**: Data được replicate giữa 2 storage nodes
+- **Instances**: 2 (vmstorage-1, vmstorage-2)
+- **Port**: 8482 (HTTP), 8400 (vminsert), 8401 (vmselect)
+- **Retention**: 1 năm
+- **Replication**: Data được replicate giữa 2 nodes
+- **Fault Tolerance**: Có thể mất 1 node mà không mất data
 
 #### vminsert (Ingestion Layer)
-- **2 replicas**: vminsert-1, vminsert-2
-- **Function**: Nhận remote write requests, distribute data đến storage nodes
-- **Port**: 8480
-- **Load balancing**: Direct connection từ vmagents
-- **Storage nodes**: Kết nối đến cả 2 vmstorage nodes
+- **Instances**: 2 (vminsert-1, vminsert-2)
+- **Port**: 8480 (HTTP)
+- **Chức năng**: Accept remote write, distribute đến vmstorage
+- **Load Balancing**: Mỗi vmagent kết nối đến vminsert cụ thể
 
 #### vmselect (Query Layer)
-- **2 replicas**: vmselect-1, vmselect-2
-- **Function**: Query time series data từ storage nodes
-- **Port**: 8481
-- **Load balancing**: Direct connection từ vmagents
-- **Storage nodes**: Kết nối đến cả 2 vmstorage nodes
+- **Instances**: 2 (vmselect-1, vmselect-2)
+- **Port**: 8481 (HTTP)
+- **Chức năng**: Execute PromQL queries, aggregate từ vmstorage
+- **Performance**: Cached queries, parallel execution
 
+### vmagent Instances
 
+#### Development Environment
+**Cluster**: `ap-southeast-1-dev-eks-01`
+- **Environment**: dev
+- **Region**: ap-southeast-1 (Singapore)
+- **AZ**: ap-southeast-1a
+- **Remote Write**: vminsert-1
+- **Port**: 8429
 
-## vmagent Relabeling Mechanism
+#### Production Environment - US East (High Availability)
 
-### External Labels
-Labels được add cho tất cả metrics từ vmagent:
+**Cluster 1**: `us-east-1-prod-eks-01`
+- **Environment**: prod
+- **Region**: us-east-1 (N. Virginia)
+- **AZ**: us-east-1a
+- **Remote Write**: vminsert-1
+- **Port**: 8430
 
-```yaml
-external_labels:
-  region: "us-east-1"
-  cluster: "prod-us-k8s"
-  environment: "production"
-  datacenter: "us-east-1a"
+**Cluster 2**: `us-east-1-prod-eks-02`
+- **Environment**: prod
+- **Region**: us-east-1 (N. Virginia)
+- **AZ**: us-east-1b
+- **Remote Write**: vminsert-2
+- **Port**: 8431
+
+#### Production Environment - Europe
+
+**Cluster**: `eu-west-1-prod-eks-01`
+- **Environment**: prod
+- **Region**: eu-west-1 (Ireland)
+- **AZ**: eu-west-1a
+- **Remote Write**: vminsert-1
+- **Port**: 8432
+
+#### Production Environment - Asia Pacific
+
+**Cluster**: `ap-southeast-1-prod-eks-01`
+- **Environment**: prod
+- **Region**: ap-southeast-1 (Singapore)
+- **AZ**: ap-southeast-1a
+- **Remote Write**: vminsert-2
+- **Port**: 8433
+
+## Label Strategy
+
+### Standard Labels
+
+Tất cả metrics có các labels này (từ external_labels):
+
+| Label | Values | Mục đích |
+|-------|--------|----------|
+| `env` | dev, prod, monitoring | Environment isolation |
+| `region` | us-east-1, eu-west-1, ap-southeast-1, local | Geographic location |
+| `cluster` | {region}-{env}-{type}-{number} | Cluster identification |
+| `availability_zone` | us-east-1a, us-east-1b, etc. | AZ cho HA setup |
+
+### Query Patterns
+
+```promql
+# Filter theo environment
+{env="prod"}
+
+# Filter theo region
+{region="us-east-1"}
+
+# Filter theo specific cluster
+{cluster="us-east-1-prod-eks-01"}
+
+# Filter prod trong specific region
+{env="prod", region="eu-west-1"}
+
+# HA clusters tại US East
+{cluster=~"us-east-1-prod-eks-.*"}
 ```
 
-### Relabel Configs
-Transform labels trong scrape config:
+## Tại Sao Kiến Trúc Này?
 
-```yaml
-relabel_configs:
-  - source_labels: [__address__]
-    target_label: instance
-    replacement: "mock-exporter-us-east-1"
-  - target_label: job
-    replacement: "mock-exporter"
-  - target_label: region
-    replacement: "us-east-1"
-  - target_label: cluster
-    replacement: "дрон-us-k8s"
-```
+### Multi-Environment Separation
+**Vấn đề**: Dev và prod metrics lẫn lộn  
+**Giải pháp**: Môi trường riêng biệt với `env` label
+- Dev: `env="dev"` - Lower priority, testing
+- Prod: `env="prod"` - Production workloads
+- Monitoring: `env="monitoring"` - Meta-monitoring
 
-### Write Relabel Configs
-Transform labels trước khi remote write:
+### Multi-Cluster cho High Availability
+**Vấn đề**: Single point of failure  
+**Giải pháp**: 2 clusters tại us-east-1 across khác AZs
+- Nếu eks-01 (AZ-a) fails, eks-02 (AZ-b) tiếp tục hoạt động
+- Mỗi cluster có vmagent độc lập
+- Metrics được label rõ ràng: `cluster="us-east-1-prod-eks-01"`
 
-```yaml
-write_relabel_configs:
-  - source_labels: [job]
-    target_label: job
-    replacement: "agent-job"
-  - target_label: region
-    replacement: "us-east-1"
-  - target_label: cluster
-    replacement: "prod-us-k8s"
-```
+### Multi-Region cho Global Reach
+**Vấn đề**: High latency cho users xa datacenter  
+**Giải pháp**: Deploy clusters tại 3 regions
+- us-east-1: North America
+- eu-west-1: Europe
+- ap-southeast-1: Asia Pacific
 
-## Production Deployment Considerations
+### vmagent vs Prometheus
+**Tại sao vmagent?**
+- Nhẹ hơn (< 100MB memory vs 1GB+ cho Prometheus)
+- Purpose-built cho scraping + remote write
+- Không có local storage overhead
+- Performance tốt hơn at scale
+- Tối ưu cho multi-tenancy
 
-### High Availability
-- **vmstorage**: 2+ replicas với replication
-- **vminsert**: 2+ replicas với load balancing
-- **vmselect**: 2+ replicas với load balancing
+### Centralized Storage (VictoriaMetrics)
+**Tại sao central cluster?**
+- Single source of truth cho tất cả metrics
+- Efficient long-term storage (compression)
+- Global queries across tất cả regions
+- Giảm operational overhead
+- HA và replication built-in
 
-### Scaling
-- **Horizontal**: Thêm vminsert/vmselect replicas
-- **Vertical**: Tăng CPU/memory cho storage nodes
-- **Storage**: Tăng retention period hoặc add storage nodes
+## Monitoring the Monitoring Stack
 
-### Monitoring
-- **vmstorage**: Disk usage, ingestion rate, query rate
-- **vminsert**: Ingestion rate, error rate, queue size
-- **vmselect**: Query rate, query duration, error rate
+### Key Metrics Cần Watch
 
-### Security
-- **Authentication**: Basic auth hoặc OAuth2
-- **TLS**: Enable TLS cho tất cả communications
-- **Network**: Firewall rules, VPC security groups
-- **Secrets**: Store passwords trong secret management system
+**vmagent Health**:
+- `vmagent_remotewrite_send_duration_seconds` - Nên < 1s cho p95
+- `vmagent_remotewrite_pending_bytes` - Nên thấp (< 10MB)
+- `scrape_duration_seconds` - Nên < 5s cho p95
 
-### Backup & Recovery
-- **vmstorage**: Regular snapshots của data directories
-- **Config**: Version control cho tất cả config files
-- **Disaster Recovery**: Cross-region replication
+**VictoriaMetrics Health**:
+- `vm_http_request_duration_seconds` - vminsert/vmselect latency
+- `vm_slow_row_inserts_total` - Nên gần 0
+- `vm_data_size_bytes` - Monitor disk usage growth
 
-## Performance Tuning
+**Network Health**:
+- `probe_success` - Nên là 1 (100% success)
+- `probe_duration_seconds` - Track cross-region latency trends
 
-### vmstorage
-```bash
---storageDataPath=/vmstorage-data
---retentionPeriod=1y
---maxConcurrentInserts=16
---maxConcurrentSelects=16
-```
+## Production Recommendations
 
-### vminsert
-```bash
---maxConcurrentInserts=16
---maxInsertRequestSize=32MB
---maxRowsPerBlock=10000
-```
+### Minimum Requirements (per component)
 
-### vmselect
-```bash
---maxConcurrentSelects=16
---maxQueryLen=16384
---maxQueryDuration=30s
-```
+| Component | CPU | Memory | Disk |
+|-----------|-----|--------|------|
+| vmagent | 0.5 cores | 512MB | 1GB |
+| vminsert | 1 core | 2GB | 5GB |
+| vmselect | 1 core | 2GB | 5GB |
+| vmstorage | 2 cores | 4GB | 100GB SSD |
+| Grafana | 1 core | 1GB | 5GB |
+
+### Production Requirements (high load)
+
+| Component | CPU | Memory | Disk |
+|-----------|-----|--------|------|
+| vmagent | 1 core | 1GB | 5GB |
+| vminsert | 4 cores | 8GB | 10GB |
+| vmselect | 4 cores | 16GB | 10GB |
+| vmstorage | 8 cores | 32GB | 1TB NVMe SSD |
+| Grafana | 2 cores | 4GB | 20GB |
 
 ## Troubleshooting
 
-### Common Issues
-1. **vmstorage disk full**: Tăng retention period hoặc add storage
-2. **vminsert queue full**: Tăng maxConcurrentInserts
-3. **vmselect slow queries**: Tăng maxConcurrentSelects
-
-### Debug Commands
+### vmagent Không Gửi Metrics
 ```bash
-# Check vmstorage status
-curl http://vmstorage-1:8482/api/v1/status
+# Check vmagent logs
+docker logs vmagent-us-east-1-prod-eks-01
 
-# Check vminsert status  
-curl http://vminsert-1:8480/api/v1/status
+# Check pending bytes (nên thấp)
+curl localhost:8430/metrics | grep pending_bytes
 
-# Check vmselect status
-curl http://vmselect-1:8481/api/v1/status
-
+# Check remote write errors
+curl localhost:8430/metrics | grep remotewrite_errors
 ```
 
-### Logs
-```bash
-# View logs
-docker compose logs vmstorage-1
-docker compose logs vminsert-1
-docker compose logs vmselect-1
-```
+### High Remote Write Latency
+1. Check network latency giữa vmagent và vminsert
+2. Check vminsert CPU/Memory usage
+3. Check vmstorage disk I/O
+4. Cân nhắc thêm vminsert instances
 
+### Missing Metrics trong Grafana
+1. Verify vmagent đang scraping: check `up` metric
+2. Verify remote write working: check vmagent logs
+3. Verify labels match query: check external_labels trong config
+4. Test query trực tiếp: `http://localhost:8481/select/0/prometheus`
+
+## References
+
+- [VictoriaMetrics Documentation](https://docs.victoriametrics.com/)
+- [vmagent Documentation](https://docs.victoriametrics.com/vmagent.html)
+- [Prometheus Remote Write Spec](https://prometheus.io/docs/prometheus/latest/storage/#remote-storage-integrations)

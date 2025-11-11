@@ -39,7 +39,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 10,
+            "fillOpacity": 20,
             "gradientMode": "none",
             "hideFrom": {
               "tooltip": false,
@@ -72,7 +72,7 @@
               }
             ]
           },
-          "unit": "s"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -85,7 +85,7 @@
       "id": 1,
       "options": {
         "legend": {
-          "calcs": ["last", "mean", "max"],
+          "calcs": ["last", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -101,12 +101,12 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "probe_duration_seconds{job=\"blackbox\"}",
-          "legendFormat": "{{source_region}} → {{target}}",
+          "expr": "sum(rate(http_requests_total{env=\"$env\", cluster=\"$cluster\"}[5m])) by (service, method)",
+          "legendFormat": "{{service}} - {{method}}",
           "refId": "A"
         }
       ],
-      "title": "Blackbox Probe Duration by Source Region",
+      "title": "Request Rate (RED - Rate)",
       "type": "timeseries"
     },
     {
@@ -126,16 +126,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "green",
                 "value": null
               },
               {
                 "color": "yellow",
-                "value": 95
+                "value": 1
               },
               {
-                "color": "green",
-                "value": 99
+                "color": "red",
+                "value": 5
               }
             ]
           },
@@ -169,11 +169,11 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "avg(probe_success{job=\"blackbox\"}) * 100",
+          "expr": "sum(rate(http_requests_total{env=\"$env\", cluster=\"$cluster\", status_code=~\"5..\"}[5m])) / sum(rate(http_requests_total{env=\"$env\", cluster=\"$cluster\"}[5m])) * 100",
           "refId": "A"
         }
       ],
-      "title": "Overall Probe Success Rate",
+      "title": "Current Error Rate % (RED - Errors)",
       "type": "gauge"
     },
     {
@@ -196,7 +196,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -228,12 +228,99 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "count(probe_success{job=\"blackbox\"})",
+          "expr": "sum(rate(http_requests_total{env=\"$env\", cluster=\"$cluster\"}[5m]))",
           "refId": "A"
         }
       ],
-      "title": "Total Active Probes",
+      "title": "Total Request Rate",
       "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": ["last", "mean"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(rate(http_requests_total{env=\"$env\", cluster=\"$cluster\", status_code=~\"5..\"}[5m])) by (service) / sum(rate(http_requests_total{env=\"$env\", cluster=\"$cluster\"}[5m])) by (service) * 100",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Rate Over Time by Service",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -258,20 +345,20 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 0,
+        "x": 12,
         "y": 8
       },
-      "id": 4,
+      "id": 5,
       "options": {
         "calculate": false,
-        "cellGap": 2,
+        "cellGap": 1,
         "color": {
           "exponent": 0.5,
           "fill": "dark-orange",
           "mode": "scheme",
           "reverse": false,
           "scale": "exponential",
-          "scheme": "RdYlGn",
+          "scheme": "Spectral",
           "steps": 64
         },
         "exemplars": {
@@ -303,14 +390,165 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(probe_duration_seconds{job=\"blackbox\"}[5m])) by (source_region)",
+          "expr": "sum(rate(http_request_duration_seconds_bucket{env=\"$env\", cluster=\"$cluster\"}[5m])) by (le)",
           "format": "heatmap",
-          "legendFormat": "{{source_region}}",
+          "legendFormat": "{{le}}",
           "refId": "A"
         }
       ],
-      "title": "Cross-Region Probe Latency Heatmap",
+      "title": "Request Latency Distribution (RED - Duration)",
       "type": "heatmap"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "p50"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "p95"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "p99"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": ["last"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{env=\"$env\", cluster=\"$cluster\"}[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{env=\"$env\", cluster=\"$cluster\"}[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{env=\"$env\", cluster=\"$cluster\"}[5m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "title": "Request Latency Percentiles (p50, p95, p99)",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -325,7 +563,7 @@
           "custom": {
             "align": "auto",
             "cellOptions": {
-                  "type": "auto"
+              "type": "auto"
             },
             "inspect": false
           },
@@ -339,11 +577,11 @@
               },
               {
                 "color": "yellow",
-                "value": 0.1
+                "value": 0.5
               },
               {
                 "color": "red",
-                "value": 0.5
+                "value": 1
               }
             ]
           },
@@ -370,9 +608,9 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 16
       },
-      "id": 5,
+      "id": 7,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -396,13 +634,13 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "topk(10, probe_duration_seconds{job=\"blackbox\"})",
+          "expr": "topk(10, histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{env=\"$env\", cluster=\"$cluster\"}[5m])) by (le, path, method)))",
           "format": "table",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Top 10 Slowest Probe Paths",
+      "title": "Top 10 Slowest Endpoints (p95)",
       "transformations": [
         {
           "id": "organize",
@@ -410,217 +648,92 @@
             "excludeByName": {
               "Time": true,
               "__name__": true,
-              "instance": true,
-              "job": true
+              "cluster": true,
+              "env": true,
+              "le": true
             },
             "indexByName": {},
             "renameByName": {
-              "Value": "Duration",
-              "source_env": "Env",
-              "source_region": "Source Region",
-              "target": "Target"
+              "Value": "Latency (p95)",
+              "method": "Method",
+              "path": "Path"
             }
           }
         }
       ],
       "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 95
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
-      "id": 6,
-      "options": {
-        "legend": {
-          "calcs": ["last", "mean"],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "expr": "avg(probe_success{job=\"blackbox\"}) by (source_region) * 100",
-          "legendFormat": "{{source_region}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Probe Success Rate by Source Region",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      },
-      "id": 7,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "expr": "probe_duration_seconds{job=\"blackbox\"}",
-          "legendFormat": "{{source_region}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Network Latency Trends (24h)",
-      "type": "timeseries"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["cross-region", "latency", "network", "blackbox"],
+  "tags": ["application", "RED", "performance"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "prod",
+          "value": "prod"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "VictoriaMetrics"
+        },
+        "definition": "label_values(up, env)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Environment",
+        "multi": false,
+        "name": "env",
+        "options": [],
+        "query": {
+          "query": "label_values(up, env)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "us-east-1-prod-eks-01",
+          "value": "us-east-1-prod-eks-01"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "VictoriaMetrics"
+        },
+        "definition": "label_values(up{env=\"$env\"}, cluster)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Cluster",
+        "multi": false,
+        "name": "cluster",
+        "options": [],
+        "query": {
+          "query": "label_values(up{env=\"$env\"}, cluster)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Cross-Region Latency Monitoring",
-  "uid": "cross-region-latency",
+  "title": "Application Performance (RED)",
+  "uid": "application-performance",
   "version": 1,
   "weekStart": ""
 }

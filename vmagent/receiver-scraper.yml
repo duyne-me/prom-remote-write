@@ -1,0 +1,29 @@
+# vmagent configuration for Receiver Scraper
+# Purpose: Scrape prometheus-receiver metrics and forward to VictoriaMetrics
+# Flow: External/Legacy → prometheus-receiver → vmagent-receiver-scraper → vminsert
+
+global:
+  scrape_interval: 15s
+  external_labels:
+    env: "monitoring"
+    region: "local"
+    cluster: "monitoring-cluster"
+
+scrape_configs:
+  # Scrape Prometheus Receiver metrics
+  # Note: Use internal port 9090 (not 9091 which is external host port)
+  - job_name: "prometheus-receiver"
+    static_configs:
+      - targets: ["prometheus-receiver:9090"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "prometheus-receiver"
+  
+  # Self-scrape for vmagent internal metrics
+  - job_name: "vmagent"
+    static_configs:
+      - targets: ["localhost:8429"]
+    relabel_configs:
+      - target_label: job
+        replacement: "vmagent-self"
+

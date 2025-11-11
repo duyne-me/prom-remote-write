@@ -33,6 +33,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -40,190 +42,12 @@
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
-              "legend": false,
               "tooltip": false,
-              "vis": false
+              "viz": false,
+              "legend": false
             },
             "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "expr": "sum(rate(http_requests_total{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\"}[5m])) by (region)",
-          "interval": "",
-          "legendFormat": "{{region}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Request Rate by Region",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 2,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "VictoriaMetrics"
-          },
-          "expr": "sum(rate(http_requests_total{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\",status_code=~\"4..|5..\"}[5m])) / sum(rate(http_requests_total{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\"}[5m])) * 100",
-          "interval": "",
-          "legendFormat": "{{region}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Error Rate by Region",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "VictoriaMetrics"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -260,18 +84,19 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 0
       },
-      "id": 3,
+      "id": 1,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
+          "calcs": ["last", "mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
@@ -280,13 +105,30 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\"}[5m])) by (le, region))",
-          "interval": "",
-          "legendFormat": "p95 - {{region}}",
+          "expr": "histogram_quantile(0.90, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{cluster=~\"$cluster\"}[5m])) by (le, cluster))",
+          "legendFormat": "p90 - {{cluster}}",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{cluster=~\"$cluster\"}[5m])) by (le, cluster))",
+          "legendFormat": "p95 - {{cluster}}",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.99, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{cluster=~\"$cluster\"}[5m])) by (le, cluster))",
+          "legendFormat": "p99 - {{cluster}}",
+          "refId": "C"
         }
       ],
-      "title": "Latency p95 by Region",
+      "title": "vmagent Remote Write Latency (p90, p95, p99)",
       "type": "timeseries"
     },
     {
@@ -300,16 +142,18 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 10,
+            "fillOpacity": 20,
             "gradientMode": "none",
             "hideFrom": {
-              "legend": false,
               "tooltip": false,
-              "vis": false
+              "viz": false,
+              "legend": false
             },
             "lineInterpolation": "linear",
             "lineWidth": 1,
@@ -337,11 +181,191 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 10000000
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": ["last", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "vmagent_remotewrite_pending_bytes{cluster=~\"$cluster\"}",
+          "legendFormat": "{{cluster}}",
+          "refId": "A"
+        }
+      ],
+      "title": "vmagent Remote Write Pending Bytes",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 99
               }
             ]
           },
           "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": ["last", "mean"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "sum(rate(vmagent_remotewrite_send_duration_seconds_count{cluster=~\"$cluster\"}[5m])) by (cluster) / sum(rate(vmagent_remotewrite_requests_total{cluster=~\"$cluster\"}[5m])) by (cluster) * 100",
+          "legendFormat": "{{cluster}}",
+          "refId": "A"
+        }
+      ],
+      "title": "vmagent Remote Write Success Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "VictoriaMetrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
         },
         "overrides": []
       },
@@ -354,13 +378,14 @@
       "id": 4,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
+          "calcs": ["last", "mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
@@ -369,13 +394,12 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(node_cpu_seconds_total{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\",mode=\"user\"}[5m])) / count(node_cpu_seconds_total{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\",mode=\"idle\"}) * 100",
-          "interval": "",
-          "legendFormat": "{{region}}",
+          "expr": "histogram_quantile(0.95, sum(rate(scrape_duration_seconds_bucket{cluster=~\"$cluster\"}[5m])) by (le, cluster))",
+          "legendFormat": "{{cluster}}",
           "refId": "A"
         }
       ],
-      "title": "CPU Usage by Region",
+      "title": "Scrape Duration by Cluster (p95)",
       "type": "timeseries"
     },
     {
@@ -386,53 +410,58 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
             },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "inspect": false
           },
-          "mappings": [],
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 1,
+                  "text": "DOWN"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "UP"
+                }
+              },
+              "type": "value"
+            }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
-          },
-          "unit": "percent"
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -442,30 +471,47 @@
       },
       "id": 5,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
         },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "showHeader": true
       },
+      "pluginVersion": "9.5.0",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "(1 - node_memory_MemAvailable_bytes{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\"} / node_memory_MemTotal_bytes{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\"}) * 100",
-          "interval": "",
-          "legendFormat": "{{region}}",
+          "expr": "up{job=~\"vminsert|vmselect|vmstorage\"}",
+          "format": "table",
+          "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Memory Usage by Region",
-      "type": "timeseries"
+      "title": "VictoriaMetrics Cluster Components Health",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Value": "Status",
+              "instance": "Instance",
+              "job": "Component"
+            }
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": {
@@ -478,16 +524,18 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 10,
+            "fillOpacity": 20,
             "gradientMode": "none",
             "hideFrom": {
-              "legend": false,
               "tooltip": false,
-              "vis": false
+              "viz": false,
+              "legend": false
             },
             "lineInterpolation": "linear",
             "lineWidth": 1,
@@ -512,14 +560,10 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
-          "unit": "short"
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -532,12 +576,13 @@
       "id": 6,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
+          "calcs": ["last"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "mode": "single",
+          "mode": "multi",
           "sort": "none"
         }
       },
@@ -547,13 +592,12 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(app_errors_total{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\"}[5m])) by (region)",
-          "interval": "",
-          "legendFormat": "{{region}}",
+          "expr": "vm_data_size_bytes{job=\"vmstorage\"}",
+          "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Application Errors by Region",
+      "title": "VMStorage Disk Usage",
       "type": "timeseries"
     },
     {
@@ -567,6 +611,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -574,9 +620,9 @@
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
-              "legend": false,
               "tooltip": false,
-              "vis": false
+              "viz": false,
+              "legend": false
             },
             "lineInterpolation": "linear",
             "lineWidth": 1,
@@ -601,14 +647,10 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
-          "unit": "short"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -621,13 +663,14 @@
       "id": 7,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
+          "calcs": ["last", "mean"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
@@ -636,13 +679,21 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(app_business_transactions_total{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\"}[5m])) by (region)",
-          "interval": "",
-          "legendFormat": "{{region}}",
+          "expr": "histogram_quantile(0.95, sum(rate(vm_http_request_duration_seconds_bucket{job=\"vminsert\"}[5m])) by (le))",
+          "legendFormat": "vminsert p95",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "VictoriaMetrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(vm_http_request_duration_seconds_bucket{job=\"vmselect\"}[5m])) by (le))",
+          "legendFormat": "vmselect p95",
+          "refId": "B"
         }
       ],
-      "title": "Business Transactions by Region",
+      "title": "VictoriaMetrics Request Duration (p95)",
       "type": "timeseries"
     },
     {
@@ -656,6 +707,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -663,9 +716,9 @@
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
-              "legend": false,
               "tooltip": false,
-              "vis": false
+              "viz": false,
+              "legend": false
             },
             "lineInterpolation": "linear",
             "lineWidth": 1,
@@ -690,10 +743,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -710,13 +759,14 @@
       "id": 8,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
+          "calcs": ["last"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
@@ -725,91 +775,36 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(app_queue_size{region=~\"$region\",environment=~\"$environment\",cluster=~\"$cluster\"}) by (region)",
-          "interval": "",
-          "legendFormat": "{{region}}",
+          "expr": "rate(vm_slow_row_inserts_total[5m])",
+          "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Queue Size by Region",
+      "title": "VMStorage Slow Inserts Rate",
       "type": "timeseries"
     }
   ],
-  "refresh": "5s",
-  "schemaVersion": 27,
+  "refresh": "10s",
+  "schemaVersion": 38,
   "style": "dark",
-  "tags": [
-    "multi-region",
-    "comparison",
-    "global"
-  ],
+  "tags": ["monitoring", "vmagent", "victoriametrics", "health"],
   "templating": {
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": {
           "type": "prometheus",
           "uid": "VictoriaMetrics"
         },
-        "definition": "label_values(http_requests_total, region)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Region",
-        "multi": true,
-        "name": "region",
-        "options": [],
-        "query": {
-          "query": "label_values(http_requests_total, region)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "VictoriaMetrics"
-        },
-        "definition": "label_values(http_requests_total{region=~\"$region\"}, environment)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Environment",
-        "multi": true,
-        "name": "environment",
-        "options": [],
-        "query": {
-          "query": "label_values(http_requests_total{region=~\"$region\"}, environment)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "VictoriaMetrics"
-        },
-        "definition": "label_values(http_requests_total{region=~\"$region\",environment=~\"$environment\"}, cluster)",
+        "definition": "label_values(up, cluster)",
         "hide": 0,
         "includeAll": true,
         "label": "Cluster",
@@ -817,7 +812,7 @@
         "name": "cluster",
         "options": [],
         "query": {
-          "query": "label_values(http_requests_total{region=~\"$region\",environment=~\"$environment\"}, cluster)",
+          "query": "label_values(up, cluster)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -834,8 +829,9 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Multi-Region Overview Dashboard",
-  "uid": "multi-region-overview",
+  "title": "Monitoring Stack Health",
+  "uid": "monitoring-stack-health",
   "version": 1,
   "weekStart": ""
 }
+

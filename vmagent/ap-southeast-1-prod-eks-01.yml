@@ -1,0 +1,51 @@
+# vmagent configuration for Production Environment
+# Cluster: ap-southeast-1-prod-eks-01
+# Region: ap-southeast-1 (Singapore)
+# Environment: prod
+
+global:
+  scrape_interval: 15s
+  external_labels:
+    env: "prod"
+    region: "ap-southeast-1"
+    cluster: "ap-southeast-1-prod-eks-01"
+    availability_zone: "ap-southeast-1a"
+
+scrape_configs:
+  # Scrape mock exporter (application metrics)
+  - job_name: "mock-exporter"
+    static_configs:
+      - targets: ["mock-exporter-python:2112"]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: "mock-exporter-ap-southeast-1-prod"
+  
+  # Self-scrape for vmagent internal metrics (includes scrape_duration_seconds)
+  - job_name: "vmagent"
+    static_configs:
+      - targets: ["localhost:8429"]
+    relabel_configs:
+      - target_label: job
+        replacement: "vmagent-self"
+  
+  # Blackbox exporter probes for cross-region latency monitoring
+  - job_name: "blackbox"
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://mock-exporter-python:2112/metrics  # Same region (baseline)
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: target
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+      - target_label: source_region
+        replacement: "ap-southeast-1"
+      - target_label: source_env
+        replacement: "prod"
+

@@ -1,5 +1,9 @@
 services:
-  # Python Mock Exporter
+  # ============================================================================
+  # MOCK EXPORTERS - Simulate application metrics
+  # ============================================================================
+  
+  # Python Mock Exporter - Main metrics source
   mock-exporter-python:
     image: ghcr.io/duyne-me/mock-exporter-python:latest
     container_name: mock-exporter-python
@@ -12,7 +16,7 @@ services:
     networks:
       - promnet
 
-  # Go Mock Exporter
+  # Go Mock Exporter - Alternative exporter
   mock-exporter-golang:
     image: ghcr.io/duyne-me/mock-exporter-golang:latest
     container_name: mock-exporter-golang
@@ -21,7 +25,11 @@ services:
     networks:
       - promnet
 
-  # VictoriaMetrics Cluster
+  # ============================================================================
+  # VICTORIAMETRICS CLUSTER - Central time series storage
+  # ============================================================================
+  
+  # vmstorage nodes - Persistent storage layer
   vmstorage-1:
     image: victoriametrics/vmstorage:latest
     container_name: vmstorage-1
@@ -46,6 +54,7 @@ services:
     networks:
       - promnet
 
+  # vminsert nodes - Ingestion layer (load balanced)
   vminsert-1:
     image: victoriametrics/vminsert:latest
     container_name: vminsert-1
@@ -72,6 +81,7 @@ services:
     networks:
       - promnet
 
+  # vmselect nodes - Query layer
   vmselect-1:
     image: victoriametrics/vmselect:latest
     container_name: vmselect-1
@@ -98,98 +108,208 @@ services:
     networks:
       - promnet
 
+  # ============================================================================
+  # VMAGENT INSTANCES - Multi-environment, multi-cluster monitoring agents
+  # 
+  # FLOW 1 (Main): Application → vmagent (scrape) → vminsert → vmstorage
+  #
+  # Each vmagent:
+  # - Scrapes applications in its cluster (mock-exporter)
+  # - Self-scrapes for internal metrics (scrape_duration_seconds, etc.)
+  # - Probes blackbox-exporter for cross-region latency
+  # - Adds external_labels: env, region, cluster, availability_zone
+  # - Remote writes directly to vminsert (no intermediary)
+  #
+  # Naming convention: {region}-{env}-{cluster_type}-{number}
+  # ============================================================================
 
-  # vmagent instances for multi-region simulation
-  vmagent-us-east-1:
+  # DEV ENVIRONMENT - Development cluster in Singapore
+  # Cluster: ap-southeast-1-dev-eks-01
+  # Purpose: Development and testing environment
+  vmagent-ap-southeast-1-dev-eks-01:
     image: victoriametrics/vmagent:latest
-    container_name: vmagent-us-east-1
+    container_name: vmagent-ap-southeast-1-dev-eks-01
     command:
-      - "--promscrape.config=/etc/vmagent/us-east-1.yml"
+      - "--promscrape.config=/etc/vmagent/config.yml"
       - "--remoteWrite.url=http://vminsert-1:8480/insert/0/prometheus/api/v1/write"
+      - "--httpListenAddr=:8429"
     ports:
       - "8429:8429"
     volumes:
-      - ./vmagent/us-east-1.yml:/etc/vmagent/us-east-1.yml:ro
+      - ./vmagent/ap-southeast-1-dev-eks-01.yml:/etc/vmagent/config.yml:ro
     depends_on:
       - mock-exporter-python
       - vminsert-1
     networks:
       - promnet
 
-  vmagent-eu-west-1:
+  # PROD ENVIRONMENT - Production cluster 1 in US East (HA setup)
+  # Cluster: us-east-1-prod-eks-01
+  # Purpose: Production workloads, HA pair with eks-02
+  # AZ: us-east-1a
+  vmagent-us-east-1-prod-eks-01:
     image: victoriametrics/vmagent:latest
-    container_name: vmagent-eu-west-1
+    container_name: vmagent-us-east-1-prod-eks-01
     command:
-      - "--promscrape.config=/etc/vmagent/eu-west-1.yml"
-      - "--remoteWrite.url=http://vminsert-2:8480/insert/0/prometheus/api/v1/write"
-    volumes:
-      - ./vmagent/eu-west-1.yml:/etc/vmagent/eu-west-1.yml:ro
-    depends_on:
-      - mock-exporter-python
-      - vminsert-2
-    networks:
-      - promnet
-
-  vmagent-ap-southeast-1:
-    image: victoriametrics/vmagent:latest
-    container_name: vmagent-ap-southeast-1
-    command:
-      - "--promscrape.config=/etc/vmagent/ap-southeast-1.yml"
+      - "--promscrape.config=/etc/vmagent/config.yml"
       - "--remoteWrite.url=http://vminsert-1:8480/insert/0/prometheus/api/v1/write"
+      - "--httpListenAddr=:8429"
+    ports:
+      - "8430:8429"
     volumes:
-      - ./vmagent/ap-southeast-1.yml:/etc/vmagent/ap-southeast-1.yml:ro
+      - ./vmagent/us-east-1-prod-eks-01.yml:/etc/vmagent/config.yml:ro
     depends_on:
       - mock-exporter-python
       - vminsert-1
     networks:
       - promnet
 
-  vmagent-sa-east-1:
+  # PROD ENVIRONMENT - Production cluster 2 in US East (HA setup)
+  # Cluster: us-east-1-prod-eks-02
+  # Purpose: Production workloads, HA pair with eks-01
+  # AZ: us-east-1b (different AZ for fault tolerance)
+  vmagent-us-east-1-prod-eks-02:
     image: victoriametrics/vmagent:latest
-    container_name: vmagent-sa-east-1
+    container_name: vmagent-us-east-1-prod-eks-02
     command:
-      - "--promscrape.config=/etc/vmagent/sa-east-1.yml"
+      - "--promscrape.config=/etc/vmagent/config.yml"
       - "--remoteWrite.url=http://vminsert-2:8480/insert/0/prometheus/api/v1/write"
+      - "--httpListenAddr=:8429"
+    ports:
+      - "8431:8429"
     volumes:
-      - ./vmagent/sa-east-1.yml:/etc/vmagent/sa-east-1.yml:ro
+      - ./vmagent/us-east-1-prod-eks-02.yml:/etc/vmagent/config.yml:ro
     depends_on:
       - mock-exporter-python
       - vminsert-2
     networks:
       - promnet
 
-  # Prometheus Writer (updated to use Python exporter)
-  prometheus-writer:
-    image: prom/prometheus:v3.7.0
-    container_name: prometheus-writer
-    volumes:
-      - ./prometheus/writer.yml:/etc/prometheus/prometheus.yml
+  # PROD ENVIRONMENT - Production cluster in EU West
+  # Cluster: eu-west-1-prod-eks-01
+  # Purpose: Serve European users with low latency
+  vmagent-eu-west-1-prod-eks-01:
+    image: victoriametrics/vmagent:latest
+    container_name: vmagent-eu-west-1-prod-eks-01
+    command:
+      - "--promscrape.config=/etc/vmagent/config.yml"
+      - "--remoteWrite.url=http://vminsert-1:8480/insert/0/prometheus/api/v1/write"
+      - "--httpListenAddr=:8429"
     ports:
-      - "9092:9090"
+      - "8432:8429"
+    volumes:
+      - ./vmagent/eu-west-1-prod-eks-01.yml:/etc/vmagent/config.yml:ro
     depends_on:
       - mock-exporter-python
       - vminsert-1
     networks:
       - promnet
 
+  # PROD ENVIRONMENT - Production cluster in Singapore
+  # Cluster: ap-southeast-1-prod-eks-01
+  # Purpose: Serve APAC users with low latency
+  vmagent-ap-southeast-1-prod-eks-01:
+    image: victoriametrics/vmagent:latest
+    container_name: vmagent-ap-southeast-1-prod-eks-01
+    command:
+      - "--promscrape.config=/etc/vmagent/config.yml"
+      - "--remoteWrite.url=http://vminsert-2:8480/insert/0/prometheus/api/v1/write"
+      - "--httpListenAddr=:8429"
+    ports:
+      - "8433:8429"
+    volumes:
+      - ./vmagent/ap-southeast-1-prod-eks-01.yml:/etc/vmagent/config.yml:ro
+    depends_on:
+      - mock-exporter-python
+      - vminsert-2
+    networks:
+      - promnet
+
+  # ============================================================================
+  # PROMETHEUS RECEIVER - Accept remote write from external/legacy systems
+  #
+  # FLOW 2 (Push): External/Legacy → prometheus-receiver → vmagent-receiver-scraper → vminsert
+  #
+  # Purpose: Allow external Prometheus instances or legacy monitoring systems
+  # to push metrics into the VictoriaMetrics cluster
+  #
+  # How it works:
+  # 1. External system remote writes to prometheus-receiver (port 9091)
+  # 2. prometheus-receiver accepts and temporarily stores metrics
+  # 3. vmagent-receiver-scraper scrapes prometheus-receiver's metrics endpoint
+  # 4. vmagent-receiver-scraper forwards to vminsert (same as Flow 1)
+  #
+  # Note: This is separate from the main vmagent flow (Flow 1)
+  # ============================================================================
+
+  # Prometheus Receiver - Remote write endpoint for external/legacy systems
+  # Accepts remote write on port 9091
+  # Retention: 1h (short, data forwarded by vmagent-receiver-scraper)
   prometheus-receiver:
     image: prom/prometheus:v3.7.0
     container_name: prometheus-receiver
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--web.enable-remote-write-receiver"
+      - "--storage.tsdb.retention.time=1h"  # Short retention, data forwarded by vmagent
     volumes:
-      - ./prometheus/receiver.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/receiver.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9091:9090"
     networks:
       - promnet
 
+  # vmagent Receiver Scraper - Scrapes prometheus-receiver and forwards to VictoriaMetrics
+  # Part of Flow 2 (Push flow)
+  # Scrapes prometheus-receiver:9091/metrics and remote writes to vminsert
+  # Labels: env=monitoring, region=local, cluster=monitoring-cluster
+  vmagent-receiver-scraper:
+    image: victoriametrics/vmagent:latest
+    container_name: vmagent-receiver-scraper
+    command:
+      - "--promscrape.config=/etc/vmagent/config.yml"
+      - "--remoteWrite.url=http://vminsert-1:8480/insert/0/prometheus/api/v1/write"
+      - "--httpListenAddr=:8429"
+    ports:
+      - "8434:8429"
+    volumes:
+      - ./vmagent/receiver-scraper.yml:/etc/vmagent/config.yml:ro
+    depends_on:
+      - prometheus-receiver
+      - vminsert-1
+    networks:
+      - promnet
+
+  # ============================================================================
+  # BLACKBOX EXPORTER - Network probing for cross-region latency monitoring
+  #
+  # Purpose: Perform HTTP probes to measure network latency
+  # Probed by: All 5 vmagents (each vmagent scrapes blackbox-exporter)
+  # Metrics generated: probe_duration_seconds, probe_success
+  # Use case: Monitor cross-region network connectivity and latency
+  # ============================================================================
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox-exporter
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./blackbox/config.yml:/etc/blackbox_exporter/config.yml:ro
+    command:
+      - '--config.file=/etc/blackbox_exporter/config.yml'
+    networks:
+      - promnet
+
+  # ============================================================================
+  # GRAFANA - Visualization and dashboards
+  # ============================================================================
+
   grafana:
     image: grafana/grafana:12.2.0
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
