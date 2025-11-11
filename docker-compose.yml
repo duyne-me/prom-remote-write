@@ -264,7 +264,7 @@ services:
   # vmagent Receiver Scraper - Scrapes prometheus-receiver and forwards to VictoriaMetrics
   # Part of Flow 2 (Push flow)
   # Scrapes prometheus-receiver:9091/metrics and remote writes to vminsert
-  # Labels: env=monitoring, region=local, cluster=monitoring-cluster
+  # Labels: env=prod, region=us-east-1, cluster=us-east-1-eks-01-prod-legacy (legacy system)
   vmagent-receiver-scraper:
     image: victoriametrics/vmagent:latest
     container_name: vmagent-receiver-scraper

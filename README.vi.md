@@ -132,7 +132,7 @@ External/Legacy System → prometheus-receiver → vmagent-receiver-scraper → 
 **Components**:
 - `prometheus-receiver`: Remote write endpoint (port 9091)
 - `vmagent-receiver-scraper`: Scrape receiver metrics, forward đến VictoriaMetrics
-- Labels: `env=monitoring`, `region=local`, `cluster=monitoring-cluster`
+- Labels: `env=prod`, `region=us-east-1`, `cluster=us-east-1-eks-01-prod-legacy` (legacy system)
 
 ### Flow 3: Query
 ```

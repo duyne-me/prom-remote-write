@@ -5,10 +5,10 @@
 global:
   scrape_interval: 15s
   external_labels:
-    env: "monitoring"
-    region: "local"
+    env: "prod"
+    region: "us-east-1"
     storage_region: "us-east-1"  # VictoriaMetrics cluster location
-    cluster: "monitoring-cluster"
+    cluster: "us-east-1-eks-01-prod-legacy"
 
 scrape_configs:
   # Scrape Prometheus Receiver metrics

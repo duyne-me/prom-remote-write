@@ -170,7 +170,7 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
 #### vmagent-receiver-scraper
 - **Port**: 8434
 - **Function**: Scrape prometheus-receiver, forward to VictoriaMetrics
-- **Labels**: env=monitoring, region=local, cluster=monitoring-cluster
+- **Labels**: env=prod, region=us-east-1, cluster=us-east-1-eks-01-prod-legacy (legacy system)
 - **Remote Write**: vminsert-1
 
 ### Blackbox Exporter

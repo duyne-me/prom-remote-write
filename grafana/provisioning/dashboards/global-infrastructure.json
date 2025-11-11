@@ -164,7 +164,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent-self\",env!=\"monitoring\"}[5m])) by (region)",
+          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent-self\"}[5m])) by (region)",
           "legendFormat": "{{region}}",
           "refId": "A"
         }
@@ -584,7 +584,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent-self\",env!=\"monitoring\"}[5m])) by (cluster)",
+          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent-self\"}[5m])) by (cluster)",
           "legendFormat": "{{cluster}}",
           "refId": "A"
         }
