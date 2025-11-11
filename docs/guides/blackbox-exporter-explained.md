@@ -171,6 +171,13 @@ probe_success{job="blackbox"}  # 1 = success, 0 = failed
 
 **Trong Setup Của Bạn (Đã Cải Thiện):**
 - ✅ **Đã cải thiện**: Probe cross-region endpoints với `target_region` labels
+
+**Lưu ý về Demo Setup:**
+- Trong Docker network, tất cả vmagents đều probe cùng một endpoint `http://mock-exporter-python:2112/metrics`
+- Mỗi vmagent tạo 2 probes (mỗi probe có `target_region` label khác nhau: us-east-1, eu-west-1)
+- Tổng cộng: 5 vmagents × 2 probes = **10 probes** trong dashboard
+- Trong production thực tế, mỗi region sẽ có endpoint riêng, nên probes sẽ thực sự cross-region
+- Labels `source_region` và `target_region` giúp phân biệt probes trong dashboard
 - ✅ **Kết hợp với Remote Write Latency**: Cả 2 metrics được hiển thị trong dashboards
 - ✅ **Cross-Region Latency Dashboard**: Có cả blackbox probe và remote write latency panels
 - ✅ **Monitoring Stack Health Dashboard**: Có remote write latency by region panels

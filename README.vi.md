@@ -1,6 +1,6 @@
 # Monitoring Multi-Environment Multi-Cluster với VictoriaMetrics
 
-Demo kiến trúc observability production-ready với multi-environment (dev/prod), multi-cluster monitoring across regions sử dụng VictoriaMetrics, vmagent, và comprehensive latency monitoring.
+Demo kiến trúc observability production-ready với multi-environment (dev/beta/prod), multi-cluster monitoring across regions sử dụng VictoriaMetrics, vmagent, và comprehensive latency monitoring.
 
 ## Kiến trúc
 
@@ -12,6 +12,10 @@ graph TB
     
     subgraph "Dev Environment"
         VMA_DEV[vmagent<br/>ap-southeast-1-eks-01-dev<br/>env: dev]
+    end
+    
+    subgraph "Beta Environment"
+        VMA_BETA[vmagent<br/>ap-northeast-1-eks-01-beta<br/>env: beta]
     end
     
     subgraph "Prod Environment - US East (HA)"
@@ -40,23 +44,24 @@ graph TB
     end
     
     subgraph "Monitoring & Visualization"
-        BB[Blackbox Exporter<br/>Cross-Region Probes]
-        G[Grafana<br/>Port 3001]
+        BB[Blackbox Exporter<br/>Cross-Region Probes<br/>target_region labels]
+        G[Grafana<br/>Port 3001<br/>Dashboards: Probe + Remote Write]
     end
     
-    ME --> VMA_DEV & VMA_US1 & VMA_US2 & VMA_EU & VMA_AP
+    ME --> VMA_DEV & VMA_BETA & VMA_US1 & VMA_US2 & VMA_EU & VMA_AP
     
-    VMA_DEV --> VMI1
-    VMA_US1 --> VMI1
-    VMA_US2 --> VMI2
-    VMA_EU --> VMI1
-    VMA_AP --> VMI2
+    VMA_DEV -->|remote_write<br/>cross-region| VMI1
+    VMA_BETA -->|remote_write<br/>cross-region| VMI1
+    VMA_US1 -->|remote_write<br/>same-region| VMI1
+    VMA_US2 -->|remote_write<br/>same-region| VMI2
+    VMA_EU -->|remote_write<br/>cross-region| VMI1
+    VMA_AP -->|remote_write<br/>cross-region| VMI2
     
     EXT --> PR
     PR --> VMA_RCV
     VMA_RCV --> VMI1
     
-    VMA_DEV & VMA_US1 & VMA_US2 & VMA_EU & VMA_AP -.probe.-> BB
+    VMA_DEV & VMA_BETA & VMA_US1 & VMA_US2 & VMA_EU & VMA_AP -.probe<br/>cross-region.-> BB
     
     VMI1 & VMI2 --> VMST1 & VMST2
     VMST1 & VMST2 --> VMS1 & VMS2
@@ -65,11 +70,11 @@ graph TB
 
 ## Features
 
-- **Multi-Environment Setup**: Môi trường dev và prod riêng biệt với các cluster chuyên dụng
+- **Multi-Environment Setup**: Môi trường dev, beta và prod riêng biệt với các cluster chuyên dụng
 - **Multi-Cluster HA**: 2 production clusters tại US East cho high availability
-- **Multi-Region Monitoring**: 3 AWS regions (us-east-1, eu-west-1, ap-southeast-1)
+- **Multi-Region Monitoring**: 4 AWS regions (us-east-1, eu-west-1, ap-southeast-1, ap-northeast-1)
 - **VictoriaMetrics Cluster**: Distributed TSDB với 2x vminsert, 2x vmselect, 2x vmstorage
-- **5 vmagent Instances**: Mỗi cluster có vmagent riêng với labels env/region/cluster
+- **6 vmagent Instances**: Mỗi cluster có vmagent riêng với labels env/region/cluster
 - **Legacy System Support**: Prometheus receiver cho remote write từ external systems
 - **Cross-Region Latency Monitoring**: Blackbox exporter để monitor network latency
 - **Production-Ready Dashboards**: 4 dashboards tập trung (infrastructure, application, monitoring health, cross-region latency)
@@ -107,8 +112,9 @@ Dự án demo production-ready multi-environment, multi-cluster monitoring với
 Application/Mock Exporter → vmagent (cùng cluster) → vminsert → vmstorage → vmselect
 ```
 
-**5 vmagent Clusters**:
+**6 vmagent Clusters**:
 - **Dev Environment**: `ap-southeast-1-eks-01-dev`
+- **Beta Environment**: `ap-northeast-1-eks-01-beta`
 - **Prod Environment**:
   - `us-east-1-eks-01-prod` (HA cluster 1)
   - `us-east-1-eks-02-prod` (HA cluster 2)

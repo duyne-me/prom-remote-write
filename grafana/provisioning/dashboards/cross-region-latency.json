@@ -102,7 +102,7 @@
             "uid": "VictoriaMetrics"
           },
           "expr": "probe_duration_seconds{job=\"blackbox\"}",
-          "legendFormat": "{{source_region}} → {{target}}",
+          "legendFormat": "{{source_region}} → {{target_region}}",
           "refId": "A"
         }
       ],
@@ -303,9 +303,9 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(probe_duration_seconds{job=\"blackbox\"}[5m])) by (source_region)",
+          "expr": "avg(probe_duration_seconds{job=\"blackbox\"}) by (source_region, target_region)",
           "format": "heatmap",
-          "legendFormat": "{{source_region}}",
+          "legendFormat": "{{source_region}} → {{target_region}}",
           "refId": "A"
         }
       ],
@@ -510,8 +510,8 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "avg(probe_success{job=\"blackbox\"}) by (source_region) * 100",
-          "legendFormat": "{{source_region}}",
+          "expr": "avg(probe_success{job=\"blackbox\"}) by (source_region, target_region) * 100",
+          "legendFormat": "{{source_region}} → {{target_region}}",
           "refId": "A"
         }
       ],
@@ -598,7 +598,7 @@
             "uid": "VictoriaMetrics"
           },
           "expr": "probe_duration_seconds{job=\"blackbox\"}",
-          "legendFormat": "{{source_region}}",
+          "legendFormat": "{{source_region}} → {{target_region}}",
           "refId": "A"
         }
       ],
@@ -684,7 +684,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{region!=\"us-east-1\"}[5m])) by (le, region))",
+          "expr": "histogram_quantile(0.95, sum(rate(vmagent_remotewrite_duration_seconds_bucket{region!=storage_region}[5m])) by (le, region))",
           "legendFormat": "P95 {{region}}",
           "refId": "A"
         },
@@ -693,7 +693,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{region!=\"us-east-1\"}[5m])) by (le, region))",
+          "expr": "histogram_quantile(0.99, sum(rate(vmagent_remotewrite_duration_seconds_bucket{region!=storage_region}[5m])) by (le, region))",
           "legendFormat": "P99 {{region}}",
           "refId": "B"
         }
@@ -780,7 +780,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{region!=\"us-east-1\"}[5m])) by (le, cluster))",
+          "expr": "histogram_quantile(0.95, sum(rate(vmagent_remotewrite_duration_seconds_bucket{region!=storage_region}[5m])) by (le, cluster))",
           "legendFormat": "P95 {{cluster}}",
           "refId": "A"
         },
@@ -789,7 +789,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{region!=\"us-east-1\"}[5m])) by (le, cluster))",
+          "expr": "histogram_quantile(0.99, sum(rate(vmagent_remotewrite_duration_seconds_bucket{region!=storage_region}[5m])) by (le, cluster))",
           "legendFormat": "P99 {{cluster}}",
           "refId": "B"
         }
@@ -870,7 +870,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{region!=\"us-east-1\"}[5m])) by (le, region)",
+          "expr": "sum(rate(vmagent_remotewrite_duration_seconds_bucket{region!=storage_region}[5m])) by (le, region)",
           "format": "heatmap",
           "legendFormat": "{{region}}",
           "refId": "A"
@@ -958,7 +958,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{region!=\"us-east-1\"}[5m])) by (le, region))",
+          "expr": "histogram_quantile(0.95, sum(rate(vmagent_remotewrite_duration_seconds_bucket{region!=storage_region}[5m])) by (le, region))",
           "legendFormat": "Remote Write P95 {{region}}",
           "refId": "A"
         },
@@ -967,8 +967,8 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "avg(probe_duration_seconds{job=\"blackbox\", source_region!=\"us-east-1\"}) by (source_region)",
-          "legendFormat": "Probe {{source_region}}",
+          "expr": "avg(probe_duration_seconds{job=\"blackbox\"}) by (source_region, target_region) and on(source_region) (label_replace(up{job=\"vmagent-self\"}, \"source_region\", \"$1\", \"region\", \"(.*)\") != on() group_left(storage_region) label_replace(up{job=\"vmagent-self\"}, \"storage_region\", \"$1\", \"storage_region\", \"(.*)\"))",
+          "legendFormat": "Probe {{source_region}} → {{target_region}}",
           "refId": "B"
         }
       ],

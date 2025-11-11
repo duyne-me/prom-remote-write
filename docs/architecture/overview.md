@@ -4,10 +4,10 @@
 
 This project demonstrates a production-ready, multi-environment, multi-cluster monitoring architecture using VictoriaMetrics and vmagent. The setup simulates real-world scenarios with:
 
-- **Multi-Environment**: Separate dev and prod environments
-- **Multi-Cluster**: 5 independent clusters across 3 AWS regions
+- **Multi-Environment**: Separate dev, beta, and prod environments
+- **Multi-Cluster**: 6 independent clusters across 4 AWS regions
 - **High Availability**: 2 production clusters in US East for redundancy
-- **Multi-Region**: us-east-1, eu-west-1, ap-southeast-1
+- **Multi-Region**: us-east-1, eu-west-1, ap-southeast-1, ap-northeast-1
 - **Legacy Support**: Prometheus receiver for external/legacy systems
 
 ## Architecture Diagram
@@ -27,7 +27,7 @@ This project demonstrates a production-ready, multi-environment, multi-cluster m
 │               │    │  (HA: 2 cls)  │    │  ap-sg-1      │
 └───────┬───────┘    └───────┬───────┘    └───────┬───────┘
         │                    │                    │
-        │    5 vmagent Instances                 │
+        │    6 vmagent Instances                 │
         │    (self-scrape + blackbox probes)     │
         │                    │                    │
         └────────────────────┼────────────────────┘
@@ -87,7 +87,7 @@ LEGACY PUSH FLOW (Separate):
 **Region**: us-east-1 (Centralized single-region architecture)
 
 All VictoriaMetrics components are located in us-east-1. This centralized approach means:
-- vmagents from eu-west-1 and ap-southeast-1 remote write cross-region to this cluster
+- vmagents from eu-west-1, ap-southeast-1, and ap-northeast-1 remote write cross-region to this cluster
 - Cross-region latency affects remote write performance (monitored via `vmagent_remotewrite_send_duration_seconds`)
 - Single source of truth for all metrics across all regions
 - Simplified operations and querying (no federation needed)
@@ -106,7 +106,7 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
 - **Port**: 8480 (HTTP)
 - **Function**: Accept remote write from all regions, distribute to vmstorage
 - **Load Balancing**: vmagents connect to specific vminsert instance
-- **Cross-Region Traffic**: Receives remote write from eu-west-1, ap-southeast-1 (cross-region)
+- **Cross-Region Traffic**: Receives remote write from eu-west-1, ap-southeast-1, ap-northeast-1 (cross-region)
 
 #### vmselect (Query Layer)
 - **Instances**: 2 (vmselect-1, vmselect-2)
@@ -121,23 +121,27 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
 **Cluster**: `ap-southeast-1-eks-01-dev`
 - **Environment**: dev
 - **Region**: ap-southeast-1 (Singapore)
-- **AZ**: ap-southeast-1a
 - **Remote Write**: vminsert-1
 - **Port**: 8429
+
+#### Beta Environment
+**Cluster**: `ap-northeast-1-eks-01-beta`
+- **Environment**: beta
+- **Region**: ap-northeast-1 (Tokyo)
+- **Remote Write**: vminsert-1
+- **Port**: 8435
 
 #### Production Environment - US East (High Availability)
 
 **Cluster 1**: `us-east-1-eks-01-prod`
 - **Environment**: prod
 - **Region**: us-east-1 (N. Virginia)
-- **AZ**: us-east-1a
 - **Remote Write**: vminsert-1
 - **Port**: 8430
 
 **Cluster 2**: `us-east-1-eks-02-prod`
 - **Environment**: prod
 - **Region**: us-east-1 (N. Virginia)
-- **AZ**: us-east-1b
 - **Remote Write**: vminsert-2
 - **Port**: 8431
 
@@ -146,7 +150,6 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
 **Cluster**: `eu-west-1-eks-01-prod`
 - **Environment**: prod
 - **Region**: eu-west-1 (Ireland)
-- **AZ**: eu-west-1a
 - **Remote Write**: vminsert-1
 - **Port**: 8432
 
@@ -155,7 +158,6 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
 **Cluster**: `ap-southeast-1-eks-01-prod`
 - **Environment**: prod
 - **Region**: ap-southeast-1 (Singapore)
-- **AZ**: ap-southeast-1a
 - **Remote Write**: vminsert-2
 - **Port**: 8433
 

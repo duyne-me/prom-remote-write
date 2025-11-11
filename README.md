@@ -1,6 +1,6 @@
 # Multi-Environment Multi-Cluster Monitoring with VictoriaMetrics
 
-A production-ready observability architecture demonstrating multi-environment (dev/prod), multi-cluster monitoring across regions with VictoriaMetrics, vmagent, and comprehensive latency monitoring.
+A production-ready observability architecture demonstrating multi-environment (dev/beta/prod), multi-cluster monitoring across regions with VictoriaMetrics, vmagent, and comprehensive latency monitoring.
 
 ## Architecture
 
@@ -12,6 +12,10 @@ graph TB
     
     subgraph "Dev Environment"
         VMA_DEV[vmagent<br/>ap-southeast-1-eks-01-dev<br/>env: dev]
+    end
+    
+    subgraph "Beta Environment"
+        VMA_BETA[vmagent<br/>ap-northeast-1-eks-01-beta<br/>env: beta]
     end
     
     subgraph "Prod Environment - US East (HA)"
@@ -40,23 +44,24 @@ graph TB
     end
     
     subgraph "Monitoring & Visualization"
-        BB[Blackbox Exporter<br/>Cross-Region Probes]
-        G[Grafana<br/>Port 3001]
+        BB[Blackbox Exporter<br/>Cross-Region Probes<br/>target_region labels]
+        G[Grafana<br/>Port 3001<br/>Dashboards: Probe + Remote Write]
     end
     
-    ME --> VMA_DEV & VMA_US1 & VMA_US2 & VMA_EU & VMA_AP
+    ME --> VMA_DEV & VMA_BETA & VMA_US1 & VMA_US2 & VMA_EU & VMA_AP
     
-    VMA_DEV --> VMI1
-    VMA_US1 --> VMI1
-    VMA_US2 --> VMI2
-    VMA_EU --> VMI1
-    VMA_AP --> VMI2
+    VMA_DEV -->|remote_write<br/>cross-region| VMI1
+    VMA_BETA -->|remote_write<br/>cross-region| VMI1
+    VMA_US1 -->|remote_write<br/>same-region| VMI1
+    VMA_US2 -->|remote_write<br/>same-region| VMI2
+    VMA_EU -->|remote_write<br/>cross-region| VMI1
+    VMA_AP -->|remote_write<br/>cross-region| VMI2
     
     EXT --> PR
     PR --> VMA_RCV
     VMA_RCV --> VMI1
     
-    VMA_DEV & VMA_US1 & VMA_US2 & VMA_EU & VMA_AP -.probe.-> BB
+    VMA_DEV & VMA_BETA & VMA_US1 & VMA_US2 & VMA_EU & VMA_AP -.probe<br/>cross-region.-> BB
     
     VMI1 & VMI2 --> VMST1 & VMST2
     VMST1 & VMST2 --> VMS1 & VMS2
@@ -65,11 +70,11 @@ graph TB
 
 ## Features
 
-- **Multi-Environment Setup**: Separate dev and prod environments with dedicated clusters
+- **Multi-Environment Setup**: Separate dev, beta, and prod environments with dedicated clusters
 - **Multi-Cluster HA**: 2 production clusters in US East for high availability
-- **Multi-Region Monitoring**: 3 AWS regions (us-east-1, eu-west-1, ap-southeast-1)
+- **Multi-Region Monitoring**: 4 AWS regions (us-east-1, eu-west-1, ap-southeast-1, ap-northeast-1)
 - **VictoriaMetrics Cluster**: Distributed TSDB with 2x vminsert, 2x vmselect, 2x vmstorage
-- **5 vmagent Instances**: Each cluster has dedicated vmagent with env/region/cluster labels
+- **6 vmagent Instances**: Each cluster has dedicated vmagent with env/region/cluster labels
 - **Legacy System Support**: Prometheus receiver for remote write from external systems
 - **Cross-Region Latency Monitoring**: Blackbox exporter for network latency probes
 - **Production-Ready Dashboards**: 4 focused dashboards (infrastructure, application, monitoring health, cross-region latency)
@@ -107,8 +112,9 @@ This project demonstrates a production-ready multi-environment, multi-cluster mo
 Application/Mock Exporter → vmagent (same cluster) → vminsert → vmstorage → vmselect
 ```
 
-**5 vmagent Clusters**:
+**6 vmagent Clusters**:
 - **Dev Environment**: `ap-southeast-1-eks-01-dev`
+- **Beta Environment**: `ap-northeast-1-eks-01-beta`
 - **Prod Environment**:
   - `us-east-1-eks-01-prod` (HA cluster 1)
   - `us-east-1-eks-02-prod` (HA cluster 2)

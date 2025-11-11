@@ -540,11 +540,13 @@ scrape_duration_seconds > 5
 
 **Dashboard**: Monitoring Stack Health
 
-### vmagent_remotewrite_send_duration_seconds
+### vmagent_remotewrite_duration_seconds
 **Type**: Histogram  
 **Description**: Time taken to send metrics batch to remote storage (vminsert)  
 **Labels**: `cluster`, `env`, `region`, `url`  
 **Source**: vmagent internal (self-scrape job)
+
+**Note**: Metric name is `vmagent_remotewrite_duration_seconds_bucket` (not `vmagent_remotewrite_send_duration_seconds_bucket`)
 
 **Use Cases**:
 - Monitor remote write performance (MOST CRITICAL METRIC)
@@ -554,13 +556,13 @@ scrape_duration_seconds > 5
 **Query Examples**:
 ```promql
 # P95 remote write latency by cluster
-histogram_quantile(0.95, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket[5m])) by (le, cluster))
+histogram_quantile(0.95, sum(rate(vmagent_remotewrite_duration_seconds_bucket[5m])) by (le, cluster))
 
 # Remote write latency by region
-histogram_quantile(0.95, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket[5m])) by (le, region))
+histogram_quantile(0.95, sum(rate(vmagent_remotewrite_duration_seconds_bucket[5m])) by (le, region))
 
 # P99 latency (outliers)
-histogram_quantile(0.99, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket[5m])) by (le))
+histogram_quantile(0.99, sum(rate(vmagent_remotewrite_duration_seconds_bucket[5m])) by (le))
 ```
 
 **Dashboard**: Monitoring Stack Health

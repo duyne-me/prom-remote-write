@@ -144,6 +144,7 @@ services:
     depends_on:
       - mock-exporter-python
       - vminsert-1
+      - blackbox-exporter
     networks:
       - promnet
 
@@ -164,6 +165,7 @@ services:
     depends_on:
       - mock-exporter-python
       - vminsert-1
+      - blackbox-exporter
     networks:
       - promnet
 
@@ -184,6 +186,7 @@ services:
     depends_on:
       - mock-exporter-python
       - vminsert-2
+      - blackbox-exporter
     networks:
       - promnet
 
@@ -204,6 +207,7 @@ services:
     depends_on:
       - mock-exporter-python
       - vminsert-1
+      - blackbox-exporter
     networks:
       - promnet
 
@@ -224,6 +228,28 @@ services:
     depends_on:
       - mock-exporter-python
       - vminsert-2
+      - blackbox-exporter
+    networks:
+      - promnet
+
+  # BETA ENVIRONMENT - Beta cluster in Tokyo
+  # Cluster: ap-northeast-1-eks-01-beta
+  # Purpose: Beta testing environment for new features
+  vmagent-ap-northeast-1-eks-01-beta:
+    image: victoriametrics/vmagent:latest
+    container_name: vmagent-ap-northeast-1-eks-01-beta
+    command:
+      - "--promscrape.config=/etc/vmagent/config.yml"
+      - "--remoteWrite.url=http://vminsert-1:8480/insert/0/prometheus/api/v1/write"
+      - "--httpListenAddr=:8429"
+    ports:
+      - "8435:8429"
+    volumes:
+      - ./vmagent/ap-northeast-1-eks-01-beta.yml:/etc/vmagent/config.yml:ro
+    depends_on:
+      - mock-exporter-python
+      - vminsert-1
+      - blackbox-exporter
     networks:
       - promnet
 
