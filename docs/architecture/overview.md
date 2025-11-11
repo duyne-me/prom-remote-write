@@ -176,8 +176,11 @@ All VictoriaMetrics components are located in us-east-1. This centralized approa
 ### Blackbox Exporter
 - **Port**: 9115
 - **Function**: Network probes for cross-region latency monitoring
-- **Module**: http_2xx (HTTP GET probes)
+- **Module**: http_2xx (HTTP GET probes, timeout: 10s for cross-region)
 - **Probed by**: All 5 vmagents
+- **Cross-Region Probing**: Each vmagent probes endpoints in OTHER regions (not same region)
+- **Labels**: `source_region`, `target_region` for cross-region tracking
+- **Metrics**: `probe_duration_seconds`, `probe_success`
 
 ## Data Flow Details
 

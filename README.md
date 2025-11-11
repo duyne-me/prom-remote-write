@@ -164,13 +164,16 @@ sum(rate(http_requests_total{cluster=~"us-east-1-prod-eks-.*"}[5m])) by (cluster
 ```
 
 ### Cross-Region Latency Analysis
-Blackbox probes monitor network connectivity and latency:
+**Blackbox Probes** (synthetic monitoring) and **Remote Write Latency** (actual monitoring stack) monitor cross-region connectivity and latency:
 ```promql
 # Probe success rate by source region
 avg(probe_success{job="blackbox"}) by (source_region) * 100
 
-# Probe duration
+# Probe duration (synthetic monitoring)
 probe_duration_seconds{job="blackbox"}
+
+# Remote write latency by region (actual monitoring stack)
+histogram_quantile(0.95, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{region!="us-east-1"}[5m])) by (le, region))
 ```
 
 ### Legacy System Integration
@@ -235,7 +238,8 @@ remote_write:
 - `scrape_duration_seconds` (histogram) - vmagent scrape latency
 - `vmagent_remotewrite_send_duration_seconds` (histogram) - Remote write latency
 - `vmagent_remotewrite_pending_bytes` (gauge) - Pending bytes to send
-- `probe_duration_seconds` (gauge) - Blackbox probe latency
+- `probe_duration_seconds` (gauge) - Blackbox probe latency (synthetic monitoring)
+- `vmagent_remotewrite_send_duration_seconds_bucket` (histogram) - Remote write latency (actual monitoring stack)
 - `probe_success` (gauge) - Probe success/failure (0 or 1)
 
 For detailed metrics documentation, see [docs/metrics/reference.md](docs/metrics/reference.md).
@@ -291,7 +295,9 @@ The project includes 4 production-ready dashboards:
 **Focus**: Network latency and connectivity between regions
 
 **Key Panels**:
-- Blackbox Probe Duration by Source Region
+- Blackbox Probe Duration by Source Region (synthetic monitoring)
+- Remote Write Latency by Region (P95, P99) - cross-region monitoring
+- Remote Write vs Probe Latency Comparison
 - Overall Probe Success Rate (Gauge)
 - Total Active Probes Count
 - Cross-Region Probe Latency Heatmap

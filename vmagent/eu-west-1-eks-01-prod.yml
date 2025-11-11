@@ -30,13 +30,22 @@ scrape_configs:
         replacement: "vmagent-self"
   
   # Blackbox exporter probes for cross-region latency monitoring
+  # Probes endpoints in OTHER regions (us-east-1, ap-southeast-1) to measure cross-region latency
   - job_name: "blackbox"
     metrics_path: /probe
     params:
       module: [http_2xx]
     static_configs:
+      # Probe us-east-1 endpoint (cross-region from eu-west-1)
       - targets:
-          - http://mock-exporter-python:2112/metrics  # Same region (baseline)
+          - http://mock-exporter-python:2112/metrics
+        labels:
+          target_region: "us-east-1"
+      # Probe ap-southeast-1 endpoint (cross-region from eu-west-1)
+      - targets:
+          - http://mock-exporter-python:2112/metrics
+        labels:
+          target_region: "ap-southeast-1"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -48,4 +57,7 @@ scrape_configs:
         replacement: "eu-west-1"
       - target_label: source_env
         replacement: "prod"
+      # Keep target_region label from static_configs
+      - source_labels: [target_region]
+        target_label: target_region
 
