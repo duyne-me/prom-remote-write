@@ -84,8 +84,17 @@ LEGACY PUSH FLOW (Separate):
 
 ### VictoriaMetrics Cluster
 
+**Region**: us-east-1 (Centralized single-region architecture)
+
+All VictoriaMetrics components are located in us-east-1. This centralized approach means:
+- vmagents from eu-west-1 and ap-southeast-1 remote write cross-region to this cluster
+- Cross-region latency affects remote write performance (monitored via `vmagent_remotewrite_send_duration_seconds`)
+- Single source of truth for all metrics across all regions
+- Simplified operations and querying (no federation needed)
+
 #### vmstorage (Storage Layer)
 - **Instances**: 2 (vmstorage-1, vmstorage-2)
+- **Region**: us-east-1
 - **Port**: 8482 (HTTP), 8400 (vminsert), 8401 (vmselect)
 - **Retention**: 1 year
 - **Replication**: Data replicated between both nodes
@@ -93,12 +102,15 @@ LEGACY PUSH FLOW (Separate):
 
 #### vminsert (Ingestion Layer)
 - **Instances**: 2 (vminsert-1, vminsert-2)
+- **Region**: us-east-1
 - **Port**: 8480 (HTTP)
-- **Function**: Accept remote write, distribute to vmstorage
+- **Function**: Accept remote write from all regions, distribute to vmstorage
 - **Load Balancing**: vmagents connect to specific vminsert instance
+- **Cross-Region Traffic**: Receives remote write from eu-west-1, ap-southeast-1 (cross-region)
 
 #### vmselect (Query Layer)
 - **Instances**: 2 (vmselect-1, vmselect-2)
+- **Region**: us-east-1
 - **Port**: 8481 (HTTP)
 - **Function**: Execute PromQL queries, aggregate from vmstorage
 - **Performance**: Cached queries, parallel execution
@@ -204,9 +216,16 @@ All metrics have these labels (from external_labels):
 | Label | Values | Purpose |
 |-------|--------|---------|
 | `env` | dev, prod, monitoring | Environment isolation |
-| `region` | us-east-1, eu-west-1, ap-southeast-1, local | Geographic location |
+| `region` | us-east-1, eu-west-1, ap-southeast-1, local | Source region (where vmagent is located) |
+| `storage_region` | us-east-1 | Storage region (where VictoriaMetrics cluster is located) |
 | `cluster` | {region}-{env}-{type}-{number} | Cluster identification |
 | `availability_zone` | us-east-1a, us-east-1b, etc. | AZ for HA setup |
+
+**Key Distinction**:
+- `region`: Where metrics are **generated** (vmagent location)
+- `storage_region`: Where metrics are **stored** (VictoriaMetrics cluster location)
+- In centralized architecture, all metrics have `storage_region="us-east-1"` regardless of source region
+- This enables queries like: "all metrics stored in us-east-1" or "cross-region latency analysis"
 
 ### Query Patterns
 

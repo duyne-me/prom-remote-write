@@ -27,6 +27,10 @@ services:
 
   # ============================================================================
   # VICTORIAMETRICS CLUSTER - Central time series storage
+  # Region: us-east-1 (Centralized single-region architecture)
+  # All vmagents from other regions (eu-west-1, ap-southeast-1) remote write
+  # cross-region to this cluster. This demonstrates centralized monitoring
+  # with cross-region latency implications.
   # ============================================================================
   
   # vmstorage nodes - Persistent storage layer

@@ -30,13 +30,13 @@ graph TB
         VMA_RCV[vmagent-receiver-scraper]
     end
     
-    subgraph "VictoriaMetrics Cluster"
-        VMI1[vminsert-1]
-        VMI2[vminsert-2]
-        VMS1[vmselect-1]
-        VMS2[vmselect-2]
-        VMST1[vmstorage-1]
-        VMST2[vmstorage-2]
+    subgraph "VictoriaMetrics Cluster (us-east-1)"
+        VMI1[vminsert-1<br/>Region: us-east-1]
+        VMI2[vminsert-2<br/>Region: us-east-1]
+        VMS1[vmselect-1<br/>Region: us-east-1]
+        VMS2[vmselect-2<br/>Region: us-east-1]
+        VMST1[vmstorage-1<br/>Region: us-east-1]
+        VMST2[vmstorage-2<br/>Region: us-east-1]
     end
     
     subgraph "Monitoring & Visualization"
@@ -436,11 +436,20 @@ probe_duration_seconds{job="blackbox"}
 ## Documentation
 
 - [Architecture Guide](docs/architecture/overview.md) - Detailed architecture documentation
+- [Federated Multi-Region Architecture](docs/architecture/federated-multi-region.vi.md) - Alternative architecture pattern (Option 2)
 - [Metrics Reference](docs/metrics/reference.md) - Comprehensive metrics documentation
 - [Quick Start Guide](docs/guides/quick-start.md) - Step-by-step setup instructions
 - [Dashboard Guide](docs/guides/dashboard-guide.md) - Guide for each dashboard
 - [Latency Monitoring](docs/guides/latency-monitoring.md) - Comprehensive latency monitoring guide
 - [Network Latency Simulation](docs/guides/network-latency-simulation.md) - Hướng dẫn simulate network latency
+
+### Alternative Architectures
+
+Dự án này implement **Centralized Single-Region** architecture (VictoriaMetrics cluster ở us-east-1). Để học hỏi, xem [Federated Multi-Region Architecture](docs/architecture/federated-multi-region.vi.md) mô tả pattern thay thế nơi mỗi region có VictoriaMetrics cluster riêng.
+
+**Trade-offs**:
+- **Centralized**: Cost thấp hơn, operations đơn giản hơn, nhưng cross-region latency cao hơn
+- **Federated**: Latency thấp hơn, compliance tốt hơn, nhưng cost và complexity cao hơn
 
 ## License
 

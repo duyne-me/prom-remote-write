@@ -8,6 +8,7 @@ global:
   external_labels:
     env: "prod"
     region: "ap-southeast-1"
+    storage_region: "us-east-1"  # VictoriaMetrics cluster location
     cluster: "ap-southeast-1-prod-eks-01"
     availability_zone: "ap-southeast-1a"
 

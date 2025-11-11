@@ -740,9 +740,28 @@ rate(vm_slow_row_inserts_total[5m])
 
 **Alert**: > 0 indicates disk I/O or memory issues
 
+## Label Reference
+
+### Standard Labels Applied to All Metrics
+
+All metrics scraped by vmagents have these labels from `external_labels`:
+
+| Label | Description | Example Values |
+|-------|-------------|----------------|
+| `env` | Environment (dev/prod/monitoring) | `dev`, `prod`, `monitoring` |
+| `region` | Source region (where vmagent is located) | `us-east-1`, `eu-west-1`, `ap-southeast-1` |
+| `storage_region` | Storage region (where VictoriaMetrics cluster is located) | `us-east-1` |
+| `cluster` | Cluster identifier | `us-east-1-prod-eks-01` |
+| `availability_zone` | Availability zone for HA | `us-east-1a`, `us-east-1b` |
+
+**Key Distinction**:
+- `region`: Where metrics are **generated** (vmagent location)
+- `storage_region`: Where metrics are **stored** (VictoriaMetrics cluster location)
+- In centralized architecture, all metrics have `storage_region="us-east-1"` regardless of source region
+
 ## Multi-Environment Queries
 
-With the new multi-environment setup, queries can filter by env/cluster:
+With the new multi-environment setup, queries can filter by env/cluster/storage_region:
 
 ```promql
 # Dev environment only
@@ -754,11 +773,20 @@ With the new multi-environment setup, queries can filter by env/cluster:
 # Specific cluster
 {cluster="us-east-1-prod-eks-01"}
 
+# All metrics stored in us-east-1
+{storage_region="us-east-1"}
+
+# Metrics from eu-west-1 but stored in us-east-1 (cross-region)
+{region="eu-west-1", storage_region="us-east-1"}
+
 # Compare dev vs prod request rate
 sum(rate(http_requests_total[5m])) by (env)
 
 # Compare clusters in same region
 sum(rate(http_requests_total{region="us-east-1"}[5m])) by (cluster)
+
+# Cross-region latency analysis (source vs storage)
+histogram_quantile(0.95, sum(rate(vmagent_remotewrite_send_duration_seconds_bucket{region!="us-east-1", storage_region="us-east-1"}[5m])) by (le, region))
 
 # HA clusters in US East
 {cluster=~"us-east-1-prod-eks-.*"}

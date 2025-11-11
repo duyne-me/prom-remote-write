@@ -41,8 +41,17 @@ Grafana → vmselect → vmstorage
 
 ### VictoriaMetrics Cluster
 
+**Region**: us-east-1 (Centralized single-region architecture)
+
+Tất cả VictoriaMetrics components nằm ở us-east-1. Centralized approach này có nghĩa:
+- vmagents từ eu-west-1 và ap-southeast-1 remote write cross-region đến cluster này
+- Cross-region latency ảnh hưởng remote write performance (monitor qua `vmagent_remotewrite_send_duration_seconds`)
+- Single source of truth cho tất cả metrics across tất cả regions
+- Simplified operations và querying (không cần federation)
+
 #### vmstorage (Storage Layer)
 - **Instances**: 2 (vmstorage-1, vmstorage-2)
+- **Region**: us-east-1
 - **Port**: 8482 (HTTP), 8400 (vminsert), 8401 (vmselect)
 - **Retention**: 1 năm
 - **Replication**: Data được replicate giữa 2 nodes
@@ -50,12 +59,15 @@ Grafana → vmselect → vmstorage
 
 #### vminsert (Ingestion Layer)
 - **Instances**: 2 (vminsert-1, vminsert-2)
+- **Region**: us-east-1
 - **Port**: 8480 (HTTP)
-- **Chức năng**: Accept remote write, distribute đến vmstorage
+- **Chức năng**: Accept remote write từ tất cả regions, distribute đến vmstorage
 - **Load Balancing**: Mỗi vmagent kết nối đến vminsert cụ thể
+- **Cross-Region Traffic**: Nhận remote write từ eu-west-1, ap-southeast-1 (cross-region)
 
 #### vmselect (Query Layer)
 - **Instances**: 2 (vmselect-1, vmselect-2)
+- **Region**: us-east-1
 - **Port**: 8481 (HTTP)
 - **Chức năng**: Execute PromQL queries, aggregate từ vmstorage
 - **Performance**: Cached queries, parallel execution
@@ -113,9 +125,16 @@ Tất cả metrics có các labels này (từ external_labels):
 | Label | Values | Mục đích |
 |-------|--------|----------|
 | `env` | dev, prod, monitoring | Environment isolation |
-| `region` | us-east-1, eu-west-1, ap-southeast-1, local | Geographic location |
+| `region` | us-east-1, eu-west-1, ap-southeast-1, local | Source region (nơi vmagent đặt) |
+| `storage_region` | us-east-1 | Storage region (nơi VictoriaMetrics cluster đặt) |
 | `cluster` | {region}-{env}-{type}-{number} | Cluster identification |
 | `availability_zone` | us-east-1a, us-east-1b, etc. | AZ cho HA setup |
+
+**Phân biệt quan trọng**:
+- `region`: Nơi metrics được **generate** (vmagent location)
+- `storage_region`: Nơi metrics được **store** (VictoriaMetrics cluster location)
+- Trong centralized architecture, tất cả metrics có `storage_region="us-east-1"` bất kể source region
+- Cho phép queries như: "tất cả metrics lưu ở us-east-1" hoặc "cross-region latency analysis"
 
 ### Query Patterns
 

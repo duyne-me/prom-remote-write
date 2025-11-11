@@ -30,13 +30,13 @@ graph TB
         VMA_RCV[vmagent-receiver-scraper]
     end
     
-    subgraph "VictoriaMetrics Cluster"
-        VMI1[vminsert-1]
-        VMI2[vminsert-2]
-        VMS1[vmselect-1]
-        VMS2[vmselect-2]
-        VMST1[vmstorage-1]
-        VMST2[vmstorage-2]
+    subgraph "VictoriaMetrics Cluster (us-east-1)"
+        VMI1[vminsert-1<br/>Region: us-east-1]
+        VMI2[vminsert-2<br/>Region: us-east-1]
+        VMS1[vmselect-1<br/>Region: us-east-1]
+        VMS2[vmselect-2<br/>Region: us-east-1]
+        VMST1[vmstorage-1<br/>Region: us-east-1]
+        VMST2[vmstorage-2<br/>Region: us-east-1]
     end
     
     subgraph "Monitoring & Visualization"
@@ -370,12 +370,21 @@ Examples:
 
 - [Documentation Index](docs/README.md) - Complete documentation overview
 - [Architecture Guide](docs/architecture/overview.md) - Detailed architecture documentation
+- [Federated Multi-Region Architecture](docs/architecture/federated-multi-region.md) - Alternative architecture pattern (Option 2)
 - [Metrics Reference](docs/metrics/reference.md) - Comprehensive metrics documentation
 - [Quick Start Guide](docs/guides/quick-start.md) - Step-by-step setup instructions
 - [Configuration Guide](docs/guides/configuration.md) - Configuration reference
 - [Troubleshooting Guide](docs/guides/troubleshooting.md) - Common issues and solutions
 - [Best Practices](docs/guides/best-practices.md) - VictoriaMetrics best practices
 - [Query Examples](docs/examples/queries.md) - Common PromQL queries
+
+### Alternative Architectures
+
+This project implements **Centralized Single-Region** architecture (VictoriaMetrics cluster in us-east-1). For learning purposes, see [Federated Multi-Region Architecture](docs/architecture/federated-multi-region.md) which describes an alternative pattern where each region has its own VictoriaMetrics cluster.
+
+**Trade-offs**:
+- **Centralized**: Lower cost, simpler operations, but higher cross-region latency
+- **Federated**: Lower latency, better compliance, but higher cost and complexity
 
 For Vietnamese documentation, see [README.vi.md](README.vi.md).
 
