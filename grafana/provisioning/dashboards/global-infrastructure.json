@@ -78,7 +78,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent-self\"}[5m]))",
+          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent\"}[5m]))",
           "refId": "A"
         }
       ],
@@ -164,7 +164,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent-self\"}[5m])) by (region)",
+          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent\"}[5m])) by (region)",
           "legendFormat": "{{region}}",
           "refId": "A"
         }
@@ -251,7 +251,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent-self\"}[5m])) by (env)",
+          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent\"}[5m])) by (env)",
           "legendFormat": "{{env}}",
           "refId": "A"
         }
@@ -439,7 +439,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "count(up{job=\"vmagent-self\"} == 1)",
+          "expr": "count(up{job=\"vmagent\"} == 1)",
           "refId": "A"
         }
       ],
@@ -584,7 +584,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent-self\"}[5m])) by (cluster)",
+          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent\"}[5m])) by (cluster)",
           "legendFormat": "{{cluster}}",
           "refId": "A"
         }
@@ -671,7 +671,7 @@
             "type": "prometheus",
             "uid": "VictoriaMetrics"
           },
-          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent-self\"}[5m])) by (region) / ignoring(region) group_left sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent-self\"}[5m]))",
+          "expr": "sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent\"}[5m])) by (region) / ignoring(region) group_left sum(rate(vm_promscrape_scraped_samples_sum{job=\"vmagent\"}[5m]))",
           "legendFormat": "{{region}}",
           "refId": "A"
         }

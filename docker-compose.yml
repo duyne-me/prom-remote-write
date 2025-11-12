@@ -13,6 +13,8 @@ services:
       - HOST=0.0.0.0
       - PORT=2112
       - LOG_LEVEL=info
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -22,6 +24,8 @@ services:
     container_name: mock-exporter-golang
     ports:
       - "2113:2112"
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -43,6 +47,8 @@ services:
       - "--httpListenAddr=:8482"
     volumes:
       - vmstorage-1-data:/vmstorage-data
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -55,6 +61,8 @@ services:
       - "--httpListenAddr=:8482"
     volumes:
       - vmstorage-2-data:/vmstorage-data
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -66,6 +74,8 @@ services:
       - "--storageNode=vmstorage-1:8400"
       - "--storageNode=vmstorage-2:8400"
       - "--httpListenAddr=:8480"
+    cpus: 0.1
+    mem_limit: 128m
     depends_on:
       - vmstorage-1
       - vmstorage-2
@@ -79,6 +89,8 @@ services:
       - "--storageNode=vmstorage-1:8400"
       - "--storageNode=vmstorage-2:8400"
       - "--httpListenAddr=:8480"
+    cpus: 0.1
+    mem_limit: 128m
     depends_on:
       - vmstorage-1
       - vmstorage-2
@@ -93,6 +105,8 @@ services:
       - "--storageNode=vmstorage-1:8401"
       - "--storageNode=vmstorage-2:8401"
       - "--httpListenAddr=:8481"
+    cpus: 0.1
+    mem_limit: 128m
     depends_on:
       - vmstorage-1
       - vmstorage-2
@@ -106,6 +120,8 @@ services:
       - "--storageNode=vmstorage-1:8401"
       - "--storageNode=vmstorage-2:8401"
       - "--httpListenAddr=:8481"
+    cpus: 0.1
+    mem_limit: 128m
     depends_on:
       - vmstorage-1
       - vmstorage-2
@@ -145,6 +161,8 @@ services:
       - mock-exporter-python
       - vminsert-1
       - blackbox-exporter
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -166,6 +184,8 @@ services:
       - mock-exporter-python
       - vminsert-1
       - blackbox-exporter
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -187,6 +207,8 @@ services:
       - mock-exporter-python
       - vminsert-2
       - blackbox-exporter
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -208,6 +230,8 @@ services:
       - mock-exporter-python
       - vminsert-1
       - blackbox-exporter
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -229,6 +253,8 @@ services:
       - mock-exporter-python
       - vminsert-2
       - blackbox-exporter
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -250,6 +276,8 @@ services:
       - mock-exporter-python
       - vminsert-1
       - blackbox-exporter
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -305,6 +333,8 @@ services:
     depends_on:
       - prometheus-receiver
       - vminsert-1
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -326,6 +356,8 @@ services:
       - ./blackbox/config.yml:/etc/blackbox_exporter/config.yml:ro
     command:
       - '--config.file=/etc/blackbox_exporter/config.yml'
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 
@@ -350,6 +382,8 @@ services:
     depends_on:
       - prometheus-receiver
       - vmselect-1
+    cpus: 0.1
+    mem_limit: 128m
     networks:
       - promnet
 

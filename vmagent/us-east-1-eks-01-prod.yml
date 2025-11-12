@@ -27,8 +27,8 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:8429"]
     relabel_configs:
-      - target_label: job
-        replacement: "vmagent-self"
+      - target_label: instance
+        replacement: "us-east-1-eks-01-prod"
   
   # Blackbox exporter probes for cross-region latency monitoring
   # Probes endpoints in OTHER regions (ap-southeast-1, eu-west-1) to measure cross-region latency

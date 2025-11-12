@@ -40,7 +40,7 @@ This guide explains how to use each of the 4 pre-configured Grafana dashboards.
 
 #### Active vmagent Instances
 - **Type**: Stat panel
-- **Metric**: `count(up{job="vmagent-self"} == 1)`
+- **Metric**: `count(up{job="vmagent"} == 1)`
 - **Expected value**: 5 (all vmagents running)
 - **Alert if**: < 5
 
